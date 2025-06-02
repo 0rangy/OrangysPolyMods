@@ -1,0 +1,10 @@
+{
+    "polymod": {
+        "name": "No Italics",
+        "id": "noitalics",
+        "author": "Orangy",
+        "targets": ["0.5.0"],
+        "main": "main.mod.js"
+    },
+    "dependencies": []
+}
