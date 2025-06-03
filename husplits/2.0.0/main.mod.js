@@ -4,6 +4,12 @@ import { PolyMod, MixinType } from "https://pml.orangy.cfd/PolyTrackMods/PolyMod
 class HUSplits extends PolyMod {
     init = (pml) => {
         this.modPmlInstance = pml;
+
+        pml.registerSettingCategory("Heads Up Splits");
+        pml.registerSetting("Size", "huSplitsSize", "slider", 0.5);
+        pml.registerSetting("Height", "huSplitsHeight", "slider", 0.2);
+        pml.registerSetting("Show Speed Split", "huSplitsShowSpeed", "boolean", true);
+
         pml.registerFuncMixin("pP", MixinType.INSERT, `yP(this, eP, "f").notificationAudioEnabled = !0,`, () => {
             yP(this, eP, "f").addCheckpointCallback((e) => {
                 if(yP(this, HC, "f") === null) return;
@@ -20,56 +26,109 @@ class HUSplits extends PolyMod {
                     return;
                 }
                 let uiDiv = document.getElementById("ui");
-                let hintDiv = document.createElement('div');
-                hintDiv.style = `interpolate-size: allow-keywords;
-    --text-color: #fff;
-    --text-disabled-color: #5d6a7c;
-    --surface-color: #28346a;
-    --surface-secondary-color: #212b58;
-    --surface-tertiary-color: #192042;
-    --surface-transparent-color: rgba(40, 52, 106, 0.5);
-    scrollbar-color: #7272c2 #223;
-    cursor: none;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    font-family: ForcedSquare, Arial, sans-serif;
-    line-height: 1;
-    position: absolute;
-    left: 0;
-    width: 100%;
-    box-sizing: border-box;
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 0 5px #000;
-    pointer-events: none;
-    top: 150px;
-    opacity: 1;
-    transition: opacity 0.25s ease-in-out, top 0.25s ease-in-out;`;
-                let splitDiv = document.createElement('div');
-                splitDiv.style = `    interpolate-size: allow-keywords;
-    --text-color: #fff;
-    --text-disabled-color: #5d6a7c;
-    --surface-color: #28346a;
-    --surface-secondary-color: #212b58;
-    --surface-tertiary-color: #192042;
-    --surface-transparent-color: rgba(40, 52, 106, 0.5);
-    scrollbar-color: #7272c2 #223;
-    cursor: none;
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    text-align: center;
-    color: #fff;
-    text-shadow: 0 0 5px #000;
-    pointer-events: none;
-    font-family: ForcedSquare, Arial, sans-serif;
-    line-height: 1;
-    font-size: 32px;`;
-                splitDiv.innerHTML = `<p style="color: ${timeDelta <= 0 ? '#f55' : '#5f5'}">${timeDelta <= 0 ? "+" : ""}${(timeDelta*-1).toFixed(3)}</p>
-                <p style="color: ${speedDelta <= 0 ? '#f55' : '#5f5'}">${speedDelta <= 0 ? "" : "+"}${(speedDelta).toFixed(1)}</p>`
-                hintDiv.appendChild(splitDiv);
-                uiDiv.appendChild(hintDiv);
+
+                let checkpointBox = document.createElement('div');
+                checkpointBox.style = `
+                position: fixed;
+                top: ${ActivePolyModLoader.getSetting("huSplitsHeight") * 100}%;
+                left: 50%;
+                transform: translateX(-50%);
+                font-family: ForcedSquare;
+                font-style: normal;
+                font-size: ${4*ActivePolyModLoader.getSetting("huSplitsSize")}rem;
+                color: white;
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                user-select: none;
+                pointer-events: none;
+                z-index: 9999;
+                `;
+
+                let topRow = document.createElement('div');
+                topRow.style = `display: flex;`;
+
+                let speedDiv = document.createElement('div');
+                speedDiv.style = `
+                padding: 4px 8px;
+                text-align: center;
+                flex: 1;
+                background-color: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                `;
+
+                let speedDeltaDiv = document.createElement('div');
+                speedDeltaDiv.style = `
+                padding: 4px 8px;
+                text-align: center;
+                flex: 1;
+                background-color: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                `;
+
+                let midRow = document.createElement('div');
+                midRow.style = `display: flex;`;
+
+                let timeDiv = document.createElement('div');
+                timeDiv.style = `
+                padding: 4px 8px;
+                text-align: center;
+                flex: 1;
+                background-color: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                `;
+
+                let bottomRow = document.createElement('div');
+                bottomRow.style = `
+                display: flex;
+                justify-content: left;
+                `;
+
+                bottomRow.innerHTML = `
+                <p style="
+                    margin: 0;
+                    padding: 4px 8px;
+                    font-weight: bold;
+                    background-color:${timeDelta <= 0 ? '#f55' : '#334bffcc'};
+                    text-align: center;
+                ">
+                    ${timeDelta <= 0 ? "+" : ""}${(-timeDelta).toFixed(3)}
+                </p>
+                `;
+
+                speedDiv.innerHTML = `${yP(this, eP, "f").getSpeedKmh().toFixed(1)}`;
+                speedDeltaDiv.innerHTML = `
+                <p style="
+                    margin: 0;
+                    font-weight: bold;
+                    color: ${speedDelta <= 0 ? '#f55' : '#5f5'};
+                ">
+                    ${speedDelta <= 0 ? "" : "+"}${(speedDelta).toFixed(1)}
+                </p>
+                `;
+
+                timeDiv.innerHTML = `${pk.formatTimeString(curetime, !1)}`;
+
+                topRow.appendChild(speedDiv);
+                topRow.appendChild(speedDeltaDiv);
+                midRow.appendChild(timeDiv);
+
+                if(ActivePolyModLoader.getSetting("huSplitsShowSpeed") === "true") {
+                    checkpointBox.appendChild(topRow);
+                }
+                checkpointBox.appendChild(midRow);
+                checkpointBox.appendChild(bottomRow);
+                uiDiv.appendChild(checkpointBox);
+
+
                 setTimeout(() => {
-                    hintDiv.remove();
+                    checkpointBox.remove();
                 }, 2000)
             });
         })
