@@ -8,6 +8,7 @@ class HUSplits extends PolyMod {
         pml.registerSettingCategory("Heads Up Splits");
         pml.registerSetting("Size", "huSplitsSize", "slider", 0.5);
         pml.registerSetting("Height", "huSplitsHeight", "slider", 0.1);
+        pml.registerSetting("Opacity", "huSplitsOpacity", "slider", 1);
         pml.registerSetting("Show Speed Split", "huSplitsShowSpeed", "boolean", true);
 
         pml.registerFuncMixin("pP", MixinType.INSERT, `yP(this, eP, "f").notificationAudioEnabled = !0,`, () => {
@@ -32,6 +33,7 @@ class HUSplits extends PolyMod {
                 position: fixed;
                 top: ${ActivePolyModLoader.getSetting("huSplitsHeight") * 100}%;
                 left: 50%;
+                opacity: ${ActivePolyModLoader.getSetting("huSplitsOpacity")};
                 transform: translateX(-50%);
                 font-family: ForcedSquare;
                 font-style: normal;
