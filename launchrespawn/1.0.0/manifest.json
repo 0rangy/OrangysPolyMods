@@ -1,0 +1,10 @@
+{
+    "polymod": {
+        "name": "Launched Respawn",
+        "id": "launchrespawn",
+        "author": "Orangy",
+        "targets": ["0.5.0"],
+        "main": "main.mod.js"
+    },
+    "dependencies": []
+}
