@@ -1,0 +1,7 @@
+{
+    "shortdesc": "Changes URLs so leaderboards work outside of kodub.com",
+    "changelogs": {
+        "1.0.0": "Initial release",
+        "1.0.1": "Ported to PolyTrack 0.5.1"
+    }
+}
