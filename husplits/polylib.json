@@ -1,0 +1,11 @@
+{
+    "shortdesc": "Adds splits like in Trackmania",
+    "changelogs": {
+        "1.0.0": ["Initial release"],
+        "2.0.0": [
+            "Added optional time splits to the display",
+            "Complete UI Overhaul"
+        ],
+        "2.0.1": ["Ported to 0.5.1"]
+    }
+}
