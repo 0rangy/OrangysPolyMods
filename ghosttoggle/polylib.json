@@ -1,0 +1,10 @@
+{
+    "shortdesc": "Adds a keybind (default \"O\") to toggle the in-game ghost.",
+    "changelogs": {
+        "1.0.0": ["Initial release"],
+        "1.0.1": [
+            "Changed the way ghost was toggled"
+        ],
+        "1.0.2": ["Undo 1.0.1 changes","Ported to 0.5.1"]
+    }
+}

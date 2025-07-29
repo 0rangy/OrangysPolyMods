@@ -22,9 +22,8 @@ class HUSplits extends PolyMod {
                 let timeDelta;
                 let speedDelta;
                 if(ghostitme !== null && ghostitme !== undefined && curetime !== null && curetime !== undefined) {
-                    console.log(ghostitme),console.log(curetime);
                     timeDelta = ghostitme.time.time - curetime.time;
-                    speedDelta =  kI(this, $P, "f").getSpeedKmh() - i.car.getSpeedKmh();
+                    speedDelta =  kI(this, $P, "f").getSpeedKmh() - (i ? i.checkpoints ? i.checkpoints[e].speedKmh : i.car.getSpeedKmh() : i.car.getSpeedKmh());
                 } else {
                     return;
                 }
