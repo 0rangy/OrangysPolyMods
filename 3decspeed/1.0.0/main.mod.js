@@ -1,4 +1,4 @@
-import { PolyMod, MixinType } from "https://cdn.jsdelivr.net/gh/0rangy/PolyModLoader@0.5.0/PolyModLoader.js"
+import { PolyMod, MixinType } from "https://pml.crjakob.com/PolyTrackMods/PolyModLoader/0.5.1/PolyModLoader.js"
 
 class ThreeDecimalSpeedometer extends PolyMod {
     init = (pml) => {
