@@ -128,13 +128,13 @@ class OrangysCarSwitcherMod extends PolyMod {
                                         e
                                 );
                             }
-                            let pl = pml.getFromPolyTrack('pl');
+                            let pl = pml.getFromPolyTrack('vl');
                             const i = pl(
                                 n.children.map((e) => e.geometry),
                                 !0,
                             );
                             n.updateMatrixWorld(!0), i.applyMatrix4(n.matrix.clone());
-                            let Br = pml.getFromPolyTrack("wr");
+                            let Br = pml.getFromPolyTrack("yr");
                             const r = n.children.map((e) => e.material),
                                 a = new Br(i, r);
                             return (a.name = e), a;
@@ -158,7 +158,7 @@ class OrangysCarSwitcherMod extends PolyMod {
                             wheelFR: i(n("WheelFR")),
                             wheelBL: i(n("WheelBL")),
                             wheelBR: i(n("WheelBR")),
-                            collisionShapeVertices: pml.getFromPolyTrack(`ww(dv, dv, "m", fw)`).call(pml.getFromPolyTrack("dv"), n("Collision")),
+                            collisionShapeVertices: pml.getFromPolyTrack(`Vw(Dv, Dv, "m", Ow)`).call(pml.getFromPolyTrack("Dv"), n("Collision")),
                         }
         
                         resVal.wheelFL.geometry.translate(-.627909, .218824, -1.3478),
@@ -179,15 +179,15 @@ class OrangysCarSwitcherMod extends PolyMod {
              */
             setNewCarTemplateModel:async (carPath)=>{
                 var newCar = typeof carPath == "string"? await this.carApi.getComputedCarModel(carPath): carPath //so you can submit a computed model
-                pml.getFromPolyTrack('dv').models = await newCar
+                pml.getFromPolyTrack('jw').models = await newCar
                 return await newCar
             },
             carList: this.carList,
-            templateCar: pml.getFromPolyTrack('dv')
+            templateCar: pml.getFromPolyTrack('jw')
 
 
         }
-        pml.registerClassMixin("yw", "initResources", MixinType.OVERRIDE, ["vl", "dv", "gw", `ww(dv, dv, "m", fw)`, `ww(dv, dv, "m", mw)`, "pl", "wr"], (vl, dv, gw, dvdvfw, dvdvmw, pl, wr) => {
+        pml.registerClassMixin("Gw", "initResources", MixinType.OVERRIDE, ["Al", "jw", "Ww", `Vw(Dv, Dv, "m", Ow)`, `Vw(Dv, Dv, "m", Fw)`, "vl", "yr"], (vl, dv, gw, dvdvfw, dvdvmw, pl, wr) => {
             return gw(this, void 0, void 0, (function*() {
                 const e = yield new Promise(( (e, t) => {
                     this.fdThing = (new vl)
@@ -267,7 +267,7 @@ class OrangysCarSwitcherMod extends PolyMod {
             }
             ))
         })
-        pml.registerFuncMixin("hD", MixinType.INSERT, "u()", () => {
+        pml.registerFuncMixin("bN", MixinType.INSERT, "u()", () => {
             ;setTimeout(() => {
                 let carMod = ActivePolyModLoader.getMod("carswitcher");
                 const modButtonCarChooser = document.createElement("button");
@@ -276,7 +276,7 @@ class OrangysCarSwitcherMod extends PolyMod {
                 modButtonCarChooser.append(document.createTextNode(t.get("Select Car")));
             const carSelectMenu = document.createElement("div");
             carSelectMenu.className = "car-select-menu";
-            document.getElementById("ui").childNodes[0].childNodes[0].appendChild(carSelectMenu);
+            document.getElementById("ui").childNodes[0].childNodes[1].appendChild(carSelectMenu);
             carSelectMenu.style.position = "absolute";
             carSelectMenu.style.visibility = "hidden";
             carSelectMenu.style.width = "90%";
@@ -291,7 +291,7 @@ class OrangysCarSwitcherMod extends PolyMod {
                     carSelectMenu.style.visibility = carSelectMenu.style.visibility == "visible" ? "hidden" : "visible";
                 }
             )),
-            document.getElementById("ui").childNodes[0].childNodes[0].appendChild(modButtonCarChooser);
+            document.getElementById("ui").childNodes[0].childNodes[1].appendChild(modButtonCarChooser);
             }, 300)
         })
         if(pml.localStorage.getItem("carSound")){
