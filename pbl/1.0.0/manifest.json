@@ -1,0 +1,10 @@
+{
+    "polymod": {
+        "name": "PolyBlockLoader",
+        "id": "pbl",
+        "author": "Orangy",
+        "targets": ["0.5.1"],
+        "main": "main.mod.js"
+    },
+    "dependencies": []
+}
