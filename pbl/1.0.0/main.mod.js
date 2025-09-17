@@ -1,137 +1,158 @@
 import { PolyMod, MixinType } from "https://pml.crjakob.com/cb/PolyTrackMods/PolyModLoader/0.5.1/PolyModLoader.js";
 
-get = function (e, t, n, i) {
-    if ("a" === n && !i)
-        throw new TypeError(
-            "Private accessor was defined without a getter"
-        );
-    if ("function" == typeof t ? e !== t || !i : !t.has(e))
-        throw new TypeError(
-            "Cannot read private member from an object whose class did not declare it"
-        );
-    return "m" === n ? i : "a" === n ? i.call(e) : i ? i.value : t.get(e);
-};
-
 class PolyBlockLoader extends PolyMod {
-    c(sceneName, meshName, flipX, flipY, flipZ, colorMap) {
-        const models = this.gltfModels.find(m => m.scene.name === sceneName);
-        if (models == null) throw new Error(`Scene "${sceneName}" does not exist`);
-
-        const mesh = models.scene.getObjectByName(meshName);
-        if (mesh == null) {
-            throw new Error(`Mesh "${meshName}" does not exist in scene "${sceneName}"`);
-        }
-
-        let geoms;
-        if (mesh.children.length === 0) {
-            const geom = h(mesh, colorMap);
-            mesh.updateMatrixWorld(true);
-            geom.applyMatrix4(mesh.matrix);
-            geoms = [geom];
-        } else {
-            geoms = mesh.children.map(child => h(child, colorMap));
-            mesh.updateMatrixWorld(true);
-            for (const geom of geoms) geom.applyMatrix4(mesh.matrix);
-        }
-
-        let maxY = -Infinity;
-        if (flipY) {
-            for (const geom of geoms) {
-                const pos = geom.attributes.position.array;
-                for (let i = 0; i < pos.length; i += 3) {
-                    maxY = Math.max(maxY, pos[i + 1]);
-                }
-            }
-        }
-
-        for (const geom of geoms) {
-            geom.applyMatrix4(
-                new Xn().makeScale(flipX ? -1 : 1, flipY ? -1 : 1, flipZ ? -1 : 1)
+    get = function (e, t, n, i) {
+        if ("a" === n && !i)
+            throw new TypeError(
+                "Private accessor was defined without a getter"
             );
-
-            if (flipX || flipY || flipZ) {
-                const index = geom.index;
-                if (index != null) {
-                    for (let idx = 0; idx < index.count; idx += 3) {
-                        const a = index.getX(idx);
-                        const b = index.getX(idx + 1);
-                        const c = index.getX(idx + 2);
-                        index.setXYZ(idx, a, c, b);
-                    }
-                } else {
-                    const pos = geom.attributes.position;
-                    for (let idx = 0; idx < pos.count; idx += 3) {
-                        const n0 = idx;
-                        const n1 = idx + 1;
-                        const n2 = idx + 2;
-                        const ax = pos.getX(n0), ay = pos.getY(n0), az = pos.getZ(n0);
-                        const bx = pos.getX(n1), by = pos.getY(n1), bz = pos.getZ(n1);
-                        const cx = pos.getX(n2), cy = pos.getY(n2), cz = pos.getZ(n2);
-                        pos.setXYZ(n0, ax, ay, az);
-                        pos.setXYZ(n1, cx, cy, cz);
-                        pos.setXYZ(n2, bx, by, bz);
-                    }
-                }
-            }
-
-            if (flipY) geom.translate(0, maxY, 0);
-        }
-        return geoms;
-    }
-    o = async (partConfig) => {
-
-        if (get(this.loaderClass, this.pml.getFromPolyTrack(`qB`), "f").has(partConfig.id)) {
-            throw new Error("Track part types have same Id");
-        }
-
-        const partData = {
-            configuration: partConfig,
-            colors: new Map(partConfig.colors.map(({ id }) => [id, null])),
+        if ("function" == typeof t ? e !== t || !i : !t.has(e))
+            throw new TypeError(
+                "Cannot read private member from an object whose class did not declare it"
+            );
+        return "m" === n ? i : "a" === n ? i.call(e) : i ? i.value : t.get(e);
+    };
+    o = async (e) => {
+        var n, i, a, pml;
+        pml = this.pml;
+        let Xn = pml.getFromPolyTrack("Xn"),
+            Hi = pml.getFromPolyTrack("Hi"),
+            Xi = pml.getFromPolyTrack("Xi"),
+            yr = pml.getFromPolyTrack("yr"),
+            vl = pml.getFromPolyTrack("vl"),
+            yl = pml.getFromPolyTrack("yl"),
+            Ws = pml.getFromPolyTrack("Ws");
+        if (this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").has(e.id)) throw new Error("Track part types have same Id");
+        const o = {
+            configuration: e,
+            colors: new Map(e.colors.map(({ id: e }) => [e, null])),
             physicsShapeVertices: null,
         };
-        get(this.loaderClass, this.pml.getFromPolyTrack(`qB`), "f").set(partConfig.id, partData);
-
-        const l = await r;
-        let mergedGeom = null;
-
-        for (const colorEntry of partConfig.colors) {
-            const geoms = [];
-            for (const [sceneName, meshName, flipOpts] of partConfig.models) {
-                const meshes = c(
-                    sceneName,
-                    meshName,
-                    flipOpts?.flipX ?? false,
-                    flipOpts?.flipY ?? false,
-                    flipOpts?.flipZ ?? false,
-                    colorEntry.colors
+        this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").set(e.id, o);
+        const l = await this.loadGltfs(this.modelUrls);
+        function c(e, t, n, i, r, a) {
+            const s = l.find((t) => t.scene.name == e);
+            if (null == s)
+                throw new Error('Scene "' + e + '" does not exist');
+            const o = s.scene.getObjectByName(t);
+            if (null == o)
+                throw new Error(
+                'Mesh "' + t + '" does not exist in scene "' + e + '"'
                 );
-                geoms.push(...meshes);
+            let c;
+            if (0 == o.children.length) {
+                const e = o,
+                t = h(e, a);
+                e.updateMatrixWorld(!0),
+                t.applyMatrix4(e.matrix),
+                (c = [t]);
+            } else {
+                (c = o.children.map((e) => h(e, a))),
+                o.updateMatrixWorld(!0);
+                for (const e of c) e.applyMatrix4(o.matrix);
             }
-
-            const merged = this.pml.getFromPolyTrack('vl')(geoms, true).toNonIndexed();
-            merged.computeVertexNormals();
-
-            const baked = this.pml.getFromPolyTrack('yl')(merged);
-            const meshObj = new this.pml.getFromPolyTrack('yr')(baked, s);
-            partData.colors.set(colorEntry.id, meshObj);
-
-            if (!mergedGeom) mergedGeom = merged;
+            let d = -1 / 0;
+            if (i)
+                for (const e of c)
+                for (
+                    let t = 0;
+                    t < e.attributes.position.array.length;
+                    t += 3
+                )
+                    d = Math.max(d, e.attributes.position.array[t + 1]);
+            for (const e of c) {
+                if (
+                (e.applyMatrix4(
+                    new Xn().makeScale(n ? -1 : 1, i ? -1 : 1, r ? -1 : 1)
+                ),
+                n || i || r)
+                ) {
+                const t = e.index;
+                if (null != t)
+                    for (let e = 0; e < t.count; e += 3) {
+                    const n = t.getX(e),
+                        i = t.getX(e + 1),
+                        r = t.getX(e + 2);
+                    t.setXYZ(e, n, r, i);
+                    }
+                else {
+                    const t = e.attributes.position;
+                    for (let e = 0; e < t.count; e += 3) {
+                    const n = e,
+                        i = e + 1,
+                        r = e + 2,
+                        a = t.getX(n),
+                        s = t.getY(n),
+                        o = t.getZ(n),
+                        l = t.getX(i),
+                        c = t.getY(i),
+                        h = t.getZ(i),
+                        d = t.getX(r),
+                        u = t.getY(r),
+                        p = t.getZ(r);
+                    t.setXYZ(n, a, s, o),
+                        t.setXYZ(i, d, u, p),
+                        t.setXYZ(r, l, c, h);
+                    }
+                }
+                }
+                i && e.translate(0, d, 0);
+            }
+            return c;
         }
-
-        if (!mergedGeom) throw new Error("Physics geometry is missing");
-        if (!(mergedGeom.attributes.position instanceof Xi)) {
+        function h(e, t) {
+            const n = e.material;
+            if (!(n instanceof pml.getFromPolyTrack("Os")))
+                throw new Error("Material is not a MeshStandardMaterial");
+            let i, r, a;
+            if (Object.prototype.hasOwnProperty.call(t, n.name)) {
+                const e = new Hi(t[n.name]);
+                (i = e.r), (r = e.g), (a = e.b);
+            } else (i = n.color.r), (r = n.color.g), (a = n.color.b);
+            const s = e.geometry.clone(),
+                o = new Float32Array(s.attributes.position.array.length);
+            for (let e = 0; e < o.length; e += 3)
+                (o[e + 0] = i), (o[e + 1] = r), (o[e + 2] = a);
+            return (s.attributes.color = new Xi(o, 3)), s;
+        }
+        let d = null;
+        for (const t of e.colors) {
+            const r = [];
+            for (const [s, o, l] of e.models) {
+                const e = c(
+                s,
+                o,
+                null !== (n = null == l ? void 0 : l.flipX) &&
+                    void 0 !== n &&
+                    n,
+                null !== (i = null == l ? void 0 : l.flipY) &&
+                    void 0 !== i &&
+                    i,
+                null !== (a = null == l ? void 0 : l.flipZ) &&
+                    void 0 !== a &&
+                    a,
+                t.colors
+                );
+                for (const t of e) r.push(t);
+            }
+            const l = vl(r, !0).toNonIndexed();
+            l.computeVertexNormals();
+            const h = yl(l),
+                u = new yr(h, new Ws({ vertexColors: !0 }));
+            o.colors.set(t.id, u), null != d || (d = l);
+        }
+        if (null == d) throw new Error("Physics geometry is missing");
+        if (!(d.attributes.position instanceof Xi))
             throw new Error("Vertices must use BufferAttribute");
-        }
-
-        partData.physicsShapeVertices = new Float32Array(
-            mergedGeom.attributes.position.array
-        );
+        (o.physicsShapeVertices = new Float32Array(
+            d.attributes.position.array
+        ));
     };
     loadGltfs = async(paths) => {
         return await Promise.all(
             paths.map((e) => {
                 return new Promise((resolve) => {
-                    n.load(e, (t) => {
+                    this.gltfLoader.load(e, (t) => {
                         resolve(t);
                     });
                 });
@@ -147,12 +168,37 @@ class PolyBlockLoader extends PolyMod {
             ActivePolyModLoader.getMod("${this.modID}").loaderClass = this;
             console.log(yield r);
             `)
+        pml.registerFuncMixin("polyInitFunction", MixinType.INSERT, `f = u.testDeterminism();`,`ActivePolyModLoader.getMod("${this.modID}").simworkers = [u,p];`);
+        pml.registerSimWorkerFuncMixin("ammoFunc", MixinType.INSERT, `switch (e.data.messageType) {`, `case 421: for(let toExec in e.data.toExec) eval(toExec); console.log("ho!");break;`);
     }
     onGameLoad = () => {
+    }
+    hotLoad = () => {
         this.modelUrls = [`${this.baseUrl}/copy_pillars.glb`]
-        this.pml.editorExtras.registerBlock("CopyPillar1", "CopyPillars", "b235ea87337c17de7cbaecaf3d381fff9782e8379bcbc1c6cc9882da4aa1da15", "Signs", "CopyPillar1", [[[-1, 0, -1], [0, 0, 0]]], { ignoreOnExport: true })
-        this.gltfModels = this.loadGltfs(this.modelUrls);
-        
+        this.blockIds = []
+        this.pml.editorExtras.registerBlock("CopyPillar1", "Sign", "b235ea87337c17de7cbaecaf3d381fff9782e8379bcbc1c6cc9882da4aa1da15", "CopyPillars", "CopyPillar1", [[[-1, 0, -1], [0, 0, 0]]])
+        this.blockIds.push(this.pml.editorExtras.blockNumberFromId("CopyPillar1"));
+        this.pml.getFromPolyTrack("VA").map((e) => { if(this.blockIds.indexOf(e.id) !== -1) this.o(e).then(() => {
+            let mz = this.pml.getFromPolyTrack("mz");
+            // this.get(this.simworkers[0], mz, "f").postMessage({
+            //     messageType: this.pml.getFromPolyTrack("uz").Init,
+            //     isRealtime: 1,
+            //     trackParts: this.loaderClass.getPhysicsParts(),
+            // });
+            // this.get(this.simworkers[1], mz, "f").postMessage({
+            //     messageType: this.pml.getFromPolyTrack("uz").Init,
+            //     isRealtime: 0,
+            //     trackParts: this.loaderClass.getPhysicsParts(),
+            // });
+            this.get(this.simworkers[0], mz, "f").postMessage({
+                messageType: 421,
+                toExec: this.pml.editorExtras.getSimBlocks
+            });
+            this.get(this.simworkers[1], mz, "f").postMessage({
+                messageType: 421,
+                toExec: this.pml.editorExtras.getSimBlocks
+            });
+        })});
     }
 }
 
