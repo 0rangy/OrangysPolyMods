@@ -1,0 +1,10 @@
+{
+    "polymod": {
+        "name": "3 Decimal Speedometer",
+        "id": "3decspeed",
+        "author": "Orangy",
+        "targets": ["0.5.1"],
+        "main": "main.mod.js"
+    }, 
+    "dependencies": []
+}

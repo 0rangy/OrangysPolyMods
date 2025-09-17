@@ -1,4 +1,4 @@
-import { PolyMod, MixinType } from "https://pml.crjakob.com/PolyTrackMods/PolyModLoader/0.5.1/PolyModLoader.js";
+import { PolyMod, MixinType } from "https://pml.crjakob.com/cb/PolyTrackMods/PolyModLoader/0.5.1/PolyModLoader.js";
 
 get = function (e, t, n, i) {
     if ("a" === n && !i)
