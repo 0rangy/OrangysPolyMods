@@ -169,27 +169,35 @@ class PolyBlockLoader extends PolyMod {
             console.log(yield r);
             `)
         pml.registerFuncMixin("polyInitFunction", MixinType.INSERT, `f = u.testDeterminism();`,`ActivePolyModLoader.getMod("${this.modID}").simworkers = [u,p];`);
-        pml.registerSimWorkerFuncMixin("ammoFunc", MixinType.INSERT, `switch (e.data.messageType) {`, `case 421: for(let toExec in e.data.toExec) eval(toExec); console.log("ho!");break;`);
-    }
-    onGameLoad = () => {
+        pml.registerSimWorkerFuncMixin("ammoFunc", MixinType.INSERT, `switch (e.data.messageType) {`, `
+            case 421: 
+                for(let toExec of e.data.toExec) {eval(toExec);};
+                break;
+            case 422:
+                for(let toExec of e.data.toExec) {
+                    eval(toExec);
+                }
+                break;`);
     }
     hotLoad = () => {
         this.modelUrls = [`${this.baseUrl}/copy_pillars.glb`]
         this.blockIds = []
+        this.blockTextIds = []
         this.pml.editorExtras.registerBlock("CopyPillar1", "Sign", "b235ea87337c17de7cbaecaf3d381fff9782e8379bcbc1c6cc9882da4aa1da15", "CopyPillars", "CopyPillar1", [[[-1, 0, -1], [0, 0, 0]]])
+        this.blockTextIds.push("CopyPillar1");
         this.blockIds.push(this.pml.editorExtras.blockNumberFromId("CopyPillar1"));
         this.pml.getFromPolyTrack("VA").map((e) => { if(this.blockIds.indexOf(e.id) !== -1) this.o(e).then(() => {
             let mz = this.pml.getFromPolyTrack("mz");
-            // this.get(this.simworkers[0], mz, "f").postMessage({
-            //     messageType: this.pml.getFromPolyTrack("uz").Init,
-            //     isRealtime: 1,
-            //     trackParts: this.loaderClass.getPhysicsParts(),
-            // });
-            // this.get(this.simworkers[1], mz, "f").postMessage({
-            //     messageType: this.pml.getFromPolyTrack("uz").Init,
-            //     isRealtime: 0,
-            //     trackParts: this.loaderClass.getPhysicsParts(),
-            // });
+            this.get(this.simworkers[0], mz, "f").postMessage({
+                messageType: this.pml.getFromPolyTrack("uz").Init,
+                isRealtime: 1,
+                trackParts: this.loaderClass.getPhysicsParts(),
+            });
+            this.get(this.simworkers[1], mz, "f").postMessage({
+                messageType: this.pml.getFromPolyTrack("uz").Init,
+                isRealtime: 0,
+                trackParts: this.loaderClass.getPhysicsParts(),
+            });
             this.get(this.simworkers[0], mz, "f").postMessage({
                 messageType: 421,
                 toExec: this.pml.editorExtras.getSimBlocks
@@ -199,6 +207,70 @@ class PolyBlockLoader extends PolyMod {
                 toExec: this.pml.editorExtras.getSimBlocks
             });
         })});
+    }
+    hotUnload = () => {
+        this.pml.getFromPolyTrack(`
+            for(let blk in Sb) {
+                if(ActivePolyModLoader.getMod("${this.modID}").blockIds.indexOf(Number.parseInt(blk)) !== -1 || ActivePolyModLoader.getMod("${this.modID}").blockTextIds.indexOf(blk) !== -1) {
+                    delete Sb[blk];
+                }
+            }
+            for(let cfg of VA) {
+                if(ActivePolyModLoader.getMod("${this.modID}").blockIds.indexOf(cfg.id) !== -1) {
+                    VA.splice(VA.indexOf(cfg), 1);
+                }
+            };`);
+        this.pml.getFromPolyTrack(`GA.clear();for (const e of VA) {if (!GA.has(e.id)){ GA.set(e.id, e);}; }`);
+        this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").forEach(blk => {
+            if(this.blockIds.indexOf(blk.configuration.id) !== -1) {
+                console.log("got em")
+                this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").delete(blk.configuration.id);
+            }
+        })
+        let mz = this.pml.getFromPolyTrack("mz");
+        this.get(this.simworkers[0], mz, "f").postMessage({
+            messageType: 422,
+            blockIds: this.blockIds,
+            blockTextIds: this.blockTextIds,
+            toExec: [`t.dispose();`,`for(let blk in dd) {
+                        if(e.data.blockIds.indexOf(Number.parseInt(blk)) !== -1 || e.data.blockTextIds.indexOf(blk) !== -1) {
+                            delete dd[blk];
+                        }
+                    }`, `for(let cfg of xv) {
+                            if(e.data.blockIds.indexOf(cfg.id) !== -1) {
+                                xv.splice(xv.indexOf(cfg), 1);
+                            }
+                        }`,`bv.clear();for (const e of xv) {if (!bv.has(e.id)){ bv.set(e.id, e);}; }`]
+        });
+        this.get(this.simworkers[1], mz, "f").postMessage({
+            messageType: 422,
+            blockIds: this.blockIds,
+            blockTextIds: this.blockTextIds,
+            toExec: [`t.dispose();`,`for(let blk in dd) {
+                        if(e.data.blockIds.indexOf(Number.parseInt(blk)) !== -1 || e.data.blockTextIds.indexOf(blk) !== -1) {
+                            delete dd[blk];
+                        }
+                    }`, `for(let cfg of xv) {
+                            if(e.data.blockIds.indexOf(cfg.id) !== -1) {
+                                xv.splice(xv.indexOf(cfg), 1);
+                            }
+                        }`,`bv.clear();for (const e of xv) {if (!bv.has(e.id)){ bv.set(e.id, e);}; }`]
+        });
+        let physicsParts = this.loaderClass.getPhysicsParts();
+        for (const { id: t, vertices: n, detector: i, startOffset: r } of physicsParts)
+            console.log(!n ? `Block ${t}: ${n}` : !t ? t : `ok`);
+        this.get(this.simworkers[0], mz, "f").postMessage({
+                messageType: this.pml.getFromPolyTrack("uz").Init,
+                isRealtime: 1,
+                trackParts: physicsParts,
+            });
+        this.get(this.simworkers[1], mz, "f").postMessage({
+                messageType: this.pml.getFromPolyTrack("uz").Init,
+                isRealtime: 0,
+                trackParts: physicsParts,
+            });
+        this.blockIds = [];
+        this.blockTextIds = [];
     }
 }
 
