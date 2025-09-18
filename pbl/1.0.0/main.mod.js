@@ -189,6 +189,14 @@ class PolyBlockLoader extends PolyMod {
         this.pml.getFromPolyTrack("VA").map((e) => { if(this.blockIds.indexOf(e.id) !== -1) this.o(e).then(() => {
             let mz = this.pml.getFromPolyTrack("mz");
             this.get(this.simworkers[0], mz, "f").postMessage({
+                messageType: 421,
+                toExec: [...this.pml.editorExtras.getSimBlocks, "t.dispose()"]
+            });
+            this.get(this.simworkers[1], mz, "f").postMessage({
+                messageType: 421,
+                toExec: [...this.pml.editorExtras.getSimBlocks, "t.dispose()"]
+            });
+            this.get(this.simworkers[0], mz, "f").postMessage({
                 messageType: this.pml.getFromPolyTrack("uz").Init,
                 isRealtime: 1,
                 trackParts: this.loaderClass.getPhysicsParts(),
@@ -197,14 +205,6 @@ class PolyBlockLoader extends PolyMod {
                 messageType: this.pml.getFromPolyTrack("uz").Init,
                 isRealtime: 0,
                 trackParts: this.loaderClass.getPhysicsParts(),
-            });
-            this.get(this.simworkers[0], mz, "f").postMessage({
-                messageType: 421,
-                toExec: this.pml.editorExtras.getSimBlocks
-            });
-            this.get(this.simworkers[1], mz, "f").postMessage({
-                messageType: 421,
-                toExec: this.pml.editorExtras.getSimBlocks
             });
         })});
     }
