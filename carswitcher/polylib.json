@@ -4,6 +4,7 @@
         "1.0.1": [
             "Added cars (i think)"
         ],
-        "1.0.2": ["Port to 0.5.1"]
+        "1.0.2": ["Port to 0.5.1"],
+        "1.0.3": ["Fix sound path issues"]
     }
 }
