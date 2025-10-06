@@ -9,47 +9,47 @@ class OrangysCarSwitcherMod extends PolyMod {
             {
                 "name": "Poly Car",
                 "url": "models/car.glb",
-                "sound": "audio/engine.mp4"
+                "sound": "audio/engine.mp3"
             },
             {
                 "name": "Trackmania 2020",
                 "url": `${this.modBaseUrl}/${this.modVersion}/assets/tm2020.glb`,
-                "sound": "audio/engine.mp4"
+                "sound": "audio/engine.mp3"
             },
             {
                 "name": "Pingu",
                 "url": `${this.modBaseUrl}/${this.modVersion}/assets/Pingu3.glb`,
-                "sound": "audio/engine.mp4"
+                "sound": "audio/engine.mp3"
             },
             {
                 "name": "Trackmania Stadium",
                 "url": `${this.modBaseUrl}/${this.modVersion}/assets/TMStadium.glb`,
-                "sound": "audio/engine.mp4"
+                "sound": "audio/engine.mp3"
             },
             {
                 "name": "Forklift",
                 "url": `${this.modBaseUrl}/${this.modVersion}/assets/Forklift2.glb`,
-                "sound": "audio/engine.mp4"
+                "sound": "audio/engine.mp3"
             },
             {
                 "name": "Spooky Car",
                 "url": `${this.modBaseUrl}/${this.modVersion}/assets/spookycar2.glb`,
-                "sound": "audio/engine.mp4"
+                "sound": "audio/engine.mp3"
             },
             {
                 "name": "F16",
                 "url": `${this.modBaseUrl}/${this.modVersion}/assets/F16.glb`,
-                "sound": "audio/engine.mp4"
+                "sound": "audio/engine.mp3"
             },
             {
                 "name": "LightningMcQueen",
                 "url": `${this.modBaseUrl}/${this.modVersion}/assets/McQueen.glb`,
-                "sound": "audio/click.mp4"
+                "sound": "audio/click.mp3"
             },
             {
                 "name": "Delorean",
                 "url": `${this.modBaseUrl}/${this.modVersion}/assets/Delorean.glb`,
-                "sound": "audio/engine.mp4"
+                "sound": "audio/engine.mp3"
             }
         ]
         this.carList = []
