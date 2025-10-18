@@ -174,6 +174,7 @@ class PolyBlockLoader extends PolyMod {
             modelMainButton.addEventListener("click", () => {
                 if (selectedModel === modelMainButton) {
                     removeButton.disabled = true;
+                    loadButton.disabled = true;
                     modelMainButton.style = `    --text-color: #fff;
                     --text-disabled-color: #5d6a7c;
                     --surface-color: #28346a;
@@ -269,6 +270,7 @@ class PolyBlockLoader extends PolyMod {
                                 white-space: nowrap;`;
                     selectedModel = modelMainButton;
                     removeButton.disabled = false;
+                    loadButton.disabled = false;
                 }
             });
 
@@ -318,7 +320,7 @@ class PolyBlockLoader extends PolyMod {
                 margin: 0;
                 padding: 12px;
                 font-size: 28px;
-                color: var(--text-color);">  ${modelUrl.split("://")[1]}</p>`;
+                color: var(--text-color);">  ${modelUrl.split("://")[1]}<br>${this.loadedInEditor.indexOf(modelUrl) !== -1 ? "Loaded" : "Unloaded"}</p>`;
 
             let rightDiv = document.createElement("div");
             rightDiv.style = `    --text-color: #fff;
@@ -379,6 +381,18 @@ class PolyBlockLoader extends PolyMod {
         });
         buttonWrapper.appendChild(addButton);
 
+        let loadButton = document.createElement("button");
+        loadButton.className = "button back";
+        loadButton.style = "margin: 10px 0; float: left;padding: 10px";
+        loadButton.innerHTML = `<img class="button-icon" src="images/load.svg" style="margin: 0 5"> Load/Unload`;
+        loadButton.addEventListener("click", () => {
+            this.pml.soundManager.playUIClick();
+            this.loadedInEditor.indexOf(selectedModel.id) === -1 ? this.loadedInEditor.push(selectedModel.id) : this.loadedInEditor.splice(this.loadedInEditor.indexOf(selectedModel.id), 1);
+            modelsDiv.remove();
+            this.showBlockList();
+        });
+        buttonWrapper.appendChild(loadButton);
+
         let removeButton = document.createElement("button");
         removeButton.className = "button back";
         removeButton.style =
@@ -393,6 +407,9 @@ class PolyBlockLoader extends PolyMod {
                     break;
                 }
             }
+            this.hotUnloadMain();
+            this.hotUnloadSimWorker();
+            this.hotLoadMain();
             this.showBlockList();
         });
         removeButton.disabled = true;
@@ -599,22 +616,28 @@ class PolyBlockLoader extends PolyMod {
             TN(this, mN, "f").push(blockButton);
             `);
         pml.registerClassMixin("A_.prototype", "enable", MixinType.INSERT, `var e;`,
-            `console.log("Loading editor"); 
-            ActivePolyModLoader.getMod("${this.modID}").editorPartialLoad();`
+            `console.log("Loading editor");
+            let simWorkerLoad = [];
+            ActivePolyModLoader.getMod("${this.modID}").models.forEach(model => {
+                if(ActivePolyModLoader.getMod("${this.modID}").loadedInEditor.indexOf(model.url) !== -1) {
+                    simWorkerLoad.push(model);
+                }
+            });
+            ActivePolyModLoader.getMod("${this.modID}").hotLoadSimWorker(simWorkerLoad);`
         )
         pml.registerClassMixin("A_.prototype", "disable", MixinType.INSERT, `var e, t, n;`,
             `console.log("Unloading editor");
-            ActivePolyModLoader.getMod("${this.modID}").editorPartialUnload();`
+            ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
         )
         pml.registerClassMixin("A_.prototype", "dispose", MixinType.INSERT, `var e, t, n;`,
             `console.log("Unloading editor");
-            ActivePolyModLoader.getMod("${this.modID}").editorPartialUnload();`
+            ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
         )
         pml.registerClassMixin("xz.prototype", "createCar", MixinType.INSERT, `var s, o;`,
             `r ? void 0 : console.log("now driving");console.log(i);`
         )
         pml.registerClassMixin("EC.prototype", "dispose", MixinType.INSERT, `window.removeEventListener("keydown", kC(this, yC, "f")),`,
-            `console.log("no longer driving"),`
+            `console.log("no longer driving"),ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
         )
     }
     hotLoadMain = () => {
@@ -651,17 +674,6 @@ class PolyBlockLoader extends PolyMod {
                 trackParts: this.loaderClass.getPhysicsParts(),
             });
         })}});
-    }
-    editorPartialLoad = () => {
-        this.pml.getFromPolyTrack("VA").map((e) => { for(let model of this.models) { if(model.blockIds.indexOf(e.id) !== -1) this.o(e) }});
-    }
-    editorPartialUnload = () => {
-        this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").forEach(blk => {
-            if(this.blockIds.indexOf(blk.configuration.id) !== -1) {
-                console.log("got em")
-                this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").delete(blk.configuration.id);
-            }
-        })
     }
     hotUnloadMain = () => {
         this.pml.getFromPolyTrack(`
