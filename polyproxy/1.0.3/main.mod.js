@@ -2,9 +2,7 @@ import { PolyMod, MixinType } from "https://pml.crjakob.com/PolyTrackMods/PolyMo
 
 class PolyProxyMod extends PolyMod {
     init = (pml) => {
-        pml.registerClassMixin("nz.prototype", "getLeaderboard", MixinType.REPLACEBETWEEN, `vu +
-            "leaderboard?version="`, `vu +
-            "leaderboard?version="`, `"https://polyproxy.orangy.cfd/leaderboard?version="`)
+        pml.registerClassMixin("nz.prototype", "getLeaderboard", MixinType.REPLACEBETWEEN, `vu +`, `vu +`, `"https://polyproxy.orangy.cfd/" +`)
         pml.registerClassMixin("nz.prototype", "getRecordings", MixinType.REPLACEBETWEEN, `vu + "recordings?version="`, `vu + "recordings?version="`, `"https://polyproxy.orangy.cfd/recordings?version="`)
         pml.registerClassMixin("nz.prototype", "submitLeaderboard", MixinType.REPLACEBETWEEN, `vu + "leaderboard"`, `vu + "leaderboard"`, `"https://polyproxy.orangy.cfd/leaderboard"`)
         pml.registerClassMixin("nz.prototype", "submitUserProfile", MixinType.REPLACEBETWEEN, `vu + "user"`, `vu + "user"`, `"https://polyproxy.orangy.cfd/user"`)
