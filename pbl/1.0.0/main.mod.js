@@ -44,22 +44,23 @@ class PolyBlockLoader extends PolyMod {
             fetch(`${modelUrl}.json`).then(responce => responce.json()).then(json => {
                 let blocks = {};
                 let blockTextIds = [];
-                for(let block in json) {
+                for(let block in json["blocks"]) {
                     blockTextIds.push(block)
                     blocks[block] = {
-                        categoryId: json[block].categoryId,
-                        checksum: json[block].checksum,
-                        sceneName: json[block].sceneName,
-                        modelName: json[block].modelName,
-                        editorOverlap: json[block].editorOverlap,
-                        extraSettings: json[block].extraSettings || {}
+                        categoryId: json["blocks"][block].categoryId,
+                        checksum: json["blocks"][block].checksum,
+                        sceneName: json["blocks"][block].sceneName,
+                        modelName: json["blocks"][block].modelName,
+                        editorOverlap: json["blocks"][block].editorOverlap,
+                        extraSettings: json["blocks"][block].extraSettings || {}
                     }
                 }
                 this.models.push({
                     url: modelUrl,
                     blockIds: [],
                     blockTextIds,
-                    blocks
+                    blocks,
+                    categories: json["categories"] || []
                 })
                 this.hotUnloadMain();
                 this.hotUnloadSimWorker();
@@ -387,6 +388,7 @@ class PolyBlockLoader extends PolyMod {
         loadButton.innerHTML = `<img class="button-icon" src="images/load.svg" style="margin: 0 5"> Load/Unload`;
         loadButton.addEventListener("click", () => {
             this.pml.soundManager.playUIClick();
+            if(!selectedModel) return;
             this.loadedInEditor.indexOf(selectedModel.id) === -1 ? this.loadedInEditor.push(selectedModel.id) : this.loadedInEditor.splice(this.loadedInEditor.indexOf(selectedModel.id), 1);
             modelsDiv.remove();
             this.showBlockList();
@@ -433,7 +435,6 @@ class PolyBlockLoader extends PolyMod {
             colors: new Map(e.colors.map(({ id: e }) => [e, null])),
             physicsShapeVertices: null,
         };
-        this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").set(e.id, o);
         const l = await this.loadGltfs(this.modelUrls);
         function c(e, t, n, i, r, a) {
             const s = l.find((t) => t.scene.name == e);
@@ -552,6 +553,7 @@ class PolyBlockLoader extends PolyMod {
         (o.physicsShapeVertices = new Float32Array(
             d.attributes.position.array
         ));
+        this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").set(e.id, o);
     };
     loadGltfs = async(paths) => {
         return await Promise.all(
@@ -639,10 +641,24 @@ class PolyBlockLoader extends PolyMod {
         pml.registerClassMixin("EC.prototype", "dispose", MixinType.INSERT, `window.removeEventListener("keydown", kC(this, yC, "f")),`,
             `console.log("no longer driving"),ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
         )
+        pml.registerClassMixin("eU.prototype", "getCategoryMesh", MixinType.REPLACEBETWEEN, `const r = n.colors.get(i);`, `const r = n.colors.get(i);`, 
+            `for(let model of ActivePolyModLoader.getMod("${this.modID}").models) {
+                for(let category in model.categories) {
+                    if(e === RA[category]) {
+                        console.log(e);console.log(Sb[model.categories[category].icon])
+                        n = this.getPart(Sb[model.categories[category].icon]) || null;
+                    }
+                }
+            }
+            const r = n.colors.get(i);`
+        )
     }
     hotLoadMain = () => {
         for(let model of this.models) {
             this.modelUrls.push(`${model.url}.glb`);
+            for(let category in model.categories) {
+                this.pml.editorExtras.registerCategory(category, model.categories[category].icon);
+            }
             for(let block in model.blocks) {
                 this.blockTextIds.push(block);
                 this.pml.editorExtras.registerBlock(block, model.blocks[block].categoryId, model.blocks[block].checksum, model.blocks[block].sceneName, model.blocks[block].modelName, model.blocks[block].editorOverlap, model.blocks[block].extraSettings);
@@ -674,6 +690,7 @@ class PolyBlockLoader extends PolyMod {
                 trackParts: this.loaderClass.getPhysicsParts(),
             });
         })}});
+        console.log(this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f"));
     }
     hotUnloadMain = () => {
         this.pml.getFromPolyTrack(`
@@ -696,21 +713,26 @@ class PolyBlockLoader extends PolyMod {
                 this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").delete(blk.configuration.id);
             }
         })
-        let loadedSimIds = [], loadedSimTextIds = [];
+        let loadedSimIds = [], loadedSimTextIds = [], loadedSimCategories = [];
         for(let model of this.simLoadedModels) {
             loadedSimIds = [...loadedSimIds, ...model.blockIds];
             loadedSimTextIds = [...loadedSimTextIds, ...model.blockTextIds];
+            for(let category in model.categories) {
+                loadedSimCategories.push(category);
+            }
         }
         let mz = this.pml.getFromPolyTrack("mz");
         this.get(this.simworkers[0], mz, "f").postMessage({
             messageType: 422,
             blockIds: loadedSimIds,
-            blockTextIds: loadedSimTextIds
+            blockTextIds: loadedSimTextIds,
+            categories: loadedSimCategories
         });
         this.get(this.simworkers[1], mz, "f").postMessage({
             messageType: 422,
             blockIds: loadedSimIds,
-            blockTextIds: loadedSimTextIds
+            blockTextIds: loadedSimTextIds,
+            categories: loadedSimCategories
         });
         let physicsParts = this.loaderClass.getPhysicsParts();
         this.get(this.simworkers[0], mz, "f").postMessage({

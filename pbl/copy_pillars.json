@@ -1,9 +1,16 @@
 {
-    "CopyPillar1": {
-        "categoryId": "Sign",
-        "checksum": "b235ea87337c17de7cbaecaf3d381fff9782e8379bcbc1c6cc9882da4aa1da15",
-        "sceneName": "CopyPillars",
-        "modelName": "CopyPillar1",
-        "editorOverlap": [[[-1, 0, -1], [0, 0, 0]]]
+    "categories" :{
+        "CopyPillars": {
+            "icon": "CopyPillar1"
+        }
+    },
+    "blocks" :{
+        "CopyPillar1": {
+            "categoryId": "CopyPillars",
+            "checksum": "b235ea87337c17de7cbaecaf3d381fff9782e8379bcbc1c6cc9882da4aa1da15",
+            "sceneName": "CopyPillars",
+            "modelName": "CopyPillar1",
+            "editorOverlap": [[[-1, 0, -1], [0, 0, 0]]]
+        }
     }
 }
