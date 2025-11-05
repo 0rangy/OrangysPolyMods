@@ -2,6 +2,7 @@
     "shortdesc": "Makes all text normal instead of italics",
     "changelogs": {
         "1.0.0": ["Initial release"],
-        "1.0.1": ["Ported to PolyTrack 0.5.1"]
+        "1.0.1": ["Ported to PolyTrack 0.5.1"],
+        "1.1.0": ["Updated for PolyTrack 0.5.2"]
     }
 }
