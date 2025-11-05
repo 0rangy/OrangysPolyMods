@@ -6,6 +6,7 @@
             "Added optional time splits to the display",
             "Complete UI Overhaul"
         ],
-        "2.0.1": ["Ported to 0.5.1"]
+        "2.0.1": ["Ported to 0.5.1"],
+        "2.1.0": ["Updated for PolyTrack 0.5.2"]
     }
 }
