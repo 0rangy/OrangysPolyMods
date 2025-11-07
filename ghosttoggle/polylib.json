@@ -5,6 +5,7 @@
         "1.0.1": [
             "Changed the way ghost was toggled"
         ],
-        "1.0.2": ["Undo 1.0.1 changes","Ported to 0.5.1"]
+        "1.0.2": ["Undo 1.0.1 changes","Ported to 0.5.1"],
+        "1.0.3": ["Ported to 0.5.2"]
     }
 }
