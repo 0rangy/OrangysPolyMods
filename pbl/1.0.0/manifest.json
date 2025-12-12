@@ -3,8 +3,13 @@
         "name": "PolyBlockLoader",
         "id": "pbl",
         "author": "Orangy",
-        "targets": ["0.5.1"],
+        "targets": ["0.5.2"],
         "main": "main.mod.js"
     },
-    "dependencies": []
+    "dependencies": [
+        {
+            "id": "pmlapi",
+            "version": "0.1.1"
+        }
+    ]
 }

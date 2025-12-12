@@ -1,4 +1,4 @@
-import { PolyMod, MixinType } from "https://pml.crjakob.com/cb/PolyTrackMods/PolyModLoader/0.5.1/PolyModLoader.js";
+import { PolyMod, MixinType } from "https://pml.crjakob.com/cb/PolyTrackMods/PolyModLoader/0.5.2/PolyModLoader.js";
 
 class PolyBlockLoader extends PolyMod {
     get = function (e, t, n, i) {
@@ -38,7 +38,7 @@ class PolyBlockLoader extends PolyMod {
         importButton.className = "button right";
         importButton.innerHTML = `<img class="button-icon" src="images/import.svg"> Import`;
         importButton.addEventListener("click", () => {
-            this.pml.soundManager.playUIClick();
+            this.pApi.soundManager.playUIClick();
             importButton.disabled = true;
             let modelUrl = urlInput.value;
             fetch(`${modelUrl}.json`).then(responce => responce.json()).then(json => {
@@ -76,7 +76,7 @@ class PolyBlockLoader extends PolyMod {
         goBackButton.className = "button left";
         goBackButton.innerHTML = `<img class="button-icon" src="images/back.svg"> Back`;
         goBackButton.addEventListener("click", () => {
-            this.pml.soundManager.playUIClick();
+            this.pApi.soundManager.playUIClick();
             promptDiv.remove();
             this.showBlockList();
         });
@@ -363,7 +363,7 @@ class PolyBlockLoader extends PolyMod {
         backButton.style = "margin: 10px 0; float: left;padding: 10px";
         backButton.innerHTML = `<img class="button-icon" src="images/back.svg" style="margin: 0 5"> Back`;
         backButton.addEventListener("click", () => {
-            this.pml.soundManager.playUIClick();
+            this.pApi.soundManager.playUIClick();
             for (let intToUnhide of hideList) {
                 menuDiv.children[intToUnhide].classList.remove("hidden");
             }
@@ -376,7 +376,7 @@ class PolyBlockLoader extends PolyMod {
         addButton.style = "margin: 10px 0; float: left;padding: 10px";
         addButton.innerHTML = `<img class="button-icon" src="images/load.svg" style="margin: 0 5"> Add`;
         addButton.addEventListener("click", () => {
-            this.pml.soundManager.playUIClick();
+            this.pApi.soundManager.playUIClick();
             modelsDiv.remove();
             this.promptUserForNewModel();
         });
@@ -387,7 +387,7 @@ class PolyBlockLoader extends PolyMod {
         loadButton.style = "margin: 10px 0; float: left;padding: 10px";
         loadButton.innerHTML = `<img class="button-icon" src="images/load.svg" style="margin: 0 5"> Load/Unload`;
         loadButton.addEventListener("click", () => {
-            this.pml.soundManager.playUIClick();
+            this.pApi.soundManager.playUIClick();
             if(!selectedModel) return;
             this.loadedInEditor.indexOf(selectedModel.id) === -1 ? this.loadedInEditor.push(selectedModel.id) : this.loadedInEditor.splice(this.loadedInEditor.indexOf(selectedModel.id), 1);
             modelsDiv.remove();
@@ -401,7 +401,7 @@ class PolyBlockLoader extends PolyMod {
         "margin: 10px 0; float: left;padding: 10px; margin-left: 0px;";
         removeButton.innerHTML = `<img class="button-icon" src="images/erase.svg" style="margin: 0 5"> Remove`;
         removeButton.addEventListener("click", () => {
-            this.pml.soundManager.playUIClick();
+            this.pApi.soundManager.playUIClick();
             modelsDiv.remove();
             for(let model of this.models) {
                 if(model.url === selectedModel.id) {
@@ -422,19 +422,21 @@ class PolyBlockLoader extends PolyMod {
     o = async (e) => {
         var n, i, a, pml;
         pml = this.pml;
-        let Xn = pml.getFromPolyTrack("Xn"),
-            Hi = pml.getFromPolyTrack("Hi"),
-            Xi = pml.getFromPolyTrack("Xi"),
-            yr = pml.getFromPolyTrack("yr"),
+        let Matrix4 = pml.getFromPolyTrack("Matrix4"),
+            Color = pml.getFromPolyTrack("Color"),
+            BufferAttribute = pml.getFromPolyTrack("BufferAttribute"),
+            Mesh = pml.getFromPolyTrack("Mesh"),
             vl = pml.getFromPolyTrack("vl"),
             yl = pml.getFromPolyTrack("yl"),
-            Ws = pml.getFromPolyTrack("Ws");
-        if (this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").has(e.id)) throw new Error("Track part types have same Id");
+            MeshLambertMaterial = pml.getFromPolyTrack("Ws");
+            console.log(e);
+        if (this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").has(e.id)) throw new Error("Track part types have same Id");
         const o = {
             configuration: e,
             colors: new Map(e.colors.map(({ id: e }) => [e, null])),
             physicsShapeVertices: null,
         };
+        this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").set(e.id, o);
         const l = await this.loadGltfs(this.modelUrls);
         function c(e, t, n, i, r, a) {
             const s = l.find((t) => t.scene.name == e);
@@ -469,7 +471,7 @@ class PolyBlockLoader extends PolyMod {
             for (const e of c) {
                 if (
                 (e.applyMatrix4(
-                    new Xn().makeScale(n ? -1 : 1, i ? -1 : 1, r ? -1 : 1)
+                    new Matrix4().makeScale(n ? -1 : 1, i ? -1 : 1, r ? -1 : 1)
                 ),
                 n || i || r)
                 ) {
@@ -512,14 +514,14 @@ class PolyBlockLoader extends PolyMod {
                 throw new Error("Material is not a MeshStandardMaterial");
             let i, r, a;
             if (Object.prototype.hasOwnProperty.call(t, n.name)) {
-                const e = new Hi(t[n.name]);
+                const e = new Color(t[n.name]);
                 (i = e.r), (r = e.g), (a = e.b);
             } else (i = n.color.r), (r = n.color.g), (a = n.color.b);
             const s = e.geometry.clone(),
                 o = new Float32Array(s.attributes.position.array.length);
             for (let e = 0; e < o.length; e += 3)
                 (o[e + 0] = i), (o[e + 1] = r), (o[e + 2] = a);
-            return (s.attributes.color = new Xi(o, 3)), s;
+            return (s.attributes.color = new BufferAttribute(o, 3)), s;
         }
         let d = null;
         for (const t of e.colors) {
@@ -544,16 +546,18 @@ class PolyBlockLoader extends PolyMod {
             const l = vl(r, !0).toNonIndexed();
             l.computeVertexNormals();
             const h = yl(l),
-                u = new yr(h, new Ws({ vertexColors: !0 }));
+                u = new Mesh(h, new MeshLambertMaterial({ vertexColors: !0 }));
             o.colors.set(t.id, u), null != d || (d = l);
+            console.log(o);
         }
         if (null == d) throw new Error("Physics geometry is missing");
-        if (!(d.attributes.position instanceof Xi))
+        if (!(d.attributes.position instanceof BufferAttribute))
             throw new Error("Vertices must use BufferAttribute");
         (o.physicsShapeVertices = new Float32Array(
             d.attributes.position.array
         ));
-        this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").set(e.id, o);
+        this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").set(e.id, o);
+        console.log(this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").get(e.id));
     };
     loadGltfs = async(paths) => {
         return await Promise.all(
@@ -568,6 +572,7 @@ class PolyBlockLoader extends PolyMod {
     }
     init = (pml) => {
         this.pml = pml;
+        this.pApi = pml.getMod("pmlapi");
         this.gltfLoader = null;
         this.loaderClass = null;
 
@@ -577,7 +582,7 @@ class PolyBlockLoader extends PolyMod {
         this.blockIds = []
         this.blockTextIds = []
         this.simLoadedModels = []
-        pml.registerClassMixin("eU.prototype", "init", MixinType.INSERT, `t.rotationAxis == _b.ZPositive)));`, `
+        pml.registerClassMixin("YB.prototype", "init", MixinType.INSERT, `t.rotationAxis == Tb.ZPositive);`, `
             ActivePolyModLoader.getMod("${this.modID}").gltfLoader = n;
             ActivePolyModLoader.getMod("${this.modID}").loaderClass = this;
             console.log(yield r);
@@ -594,14 +599,14 @@ class PolyBlockLoader extends PolyMod {
                         delete dd[blk];
                     }
                 }
-                for(let cfg of xv) {
+                for(let cfg of bv) {
                     if(e.data.blockIds.indexOf(cfg.id) !== -1) {
-                        xv.splice(xv.indexOf(cfg), 1);
+                        bv.splice(bv.indexOf(cfg), 1);
                     }
                 }
-                bv.clear();for (const e of xv) {if (!bv.has(e.id)){ bv.set(e.id, e);}; }
+                _box.clear();for (const e of bv) {if (!_box.has(e.id)){ _box.set(e.id, e);}; }
                 break;`);
-        pml.registerFuncMixin("bN", MixinType.INSERT, `const _ = document.createElement("p");`, `
+        pml.registerFuncMixin("mN", MixinType.INSERT, `const _ = document.createElement('p');`, `
             const blockButton = document.createElement("button");
             blockButton.className = "button small";
             blockButton.innerHTML = '<img src="images/import.svg">';
@@ -613,11 +618,12 @@ class PolyBlockLoader extends PolyMod {
                 e.preventDefault();
                 ActivePolyModLoader.getMod("${this.modID}").showBlockList();
             });
-            TN(this, fN, "f").appendChild(blockButton),
-            TN(this, fN, "f").appendChild(document.createElement("br")),
-            TN(this, mN, "f").push(blockButton);
+            kN(this, cN, "f").appendChild(blockButton),
+            kN(this, cN, "f").appendChild(document.createElement("br")),
+            kN(this, hN, "f").push(blockButton);
             `);
-        pml.registerClassMixin("A_.prototype", "enable", MixinType.INSERT, `var e;`,
+        pml.registerClassMixin("x_.prototype", "enable", MixinType.REPLACEBETWEEN, `b_(this, US, !0, 'f'), A_(this, dM, 'f').enabled = !0, 1 == A_(this, KM, 'f').length && A_(this, AS, 'm', a_).call(this), null === (e = A_(this, QM, 'f')) || void 0 === e || e.dispose(), b_(this, QM, new Ox(A_(this, SS, 'f')), 'f'), A_(this, QM, 'f').refresh(A_(this, _S, 'f')), A_(this, XS, 'f').show(), A_(this, zS, 'f').className = 'editor';`,
+            `b_(this, US, !0, 'f'), A_(this, dM, 'f').enabled = !0, 1 == A_(this, KM, 'f').length && A_(this, AS, 'm', a_).call(this), null === (e = A_(this, QM, 'f')) || void 0 === e || e.dispose(), b_(this, QM, new Ox(A_(this, SS, 'f')), 'f'), A_(this, QM, 'f').refresh(A_(this, _S, 'f')), A_(this, XS, 'f').show(), A_(this, zS, 'f').className = 'editor';`,
             `console.log("Loading editor");
             let simWorkerLoad = [];
             ActivePolyModLoader.getMod("${this.modID}").models.forEach(model => {
@@ -625,59 +631,64 @@ class PolyBlockLoader extends PolyMod {
                     simWorkerLoad.push(model);
                 }
             });
-            ActivePolyModLoader.getMod("${this.modID}").hotLoadSimWorker(simWorkerLoad);`
+            ActivePolyModLoader.getMod("${this.modID}").hotLoadSimWorker(simWorkerLoad);
+            setTimeout(() => {b_(this, US, !0, 'f'), A_(this, dM, 'f').enabled = !0, 1 == A_(this, KM, 'f').length && A_(this, AS, 'm', a_).call(this), null === (e = A_(this, QM, 'f')) || void 0 === e || e.dispose(), b_(this, QM, new Ox(A_(this, SS, 'f')), 'f'), A_(this, QM, 'f').refresh(A_(this, _S, 'f')), A_(this, XS, 'f').show(), A_(this, zS, 'f').className = 'editor';}, 1000);`
         )
-        pml.registerClassMixin("A_.prototype", "disable", MixinType.INSERT, `var e, t, n;`,
+        pml.registerClassMixin("x_.prototype", "disable", MixinType.INSERT, `var e, t, n;`,
             `console.log("Unloading editor");
             ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
         )
-        pml.registerClassMixin("A_.prototype", "dispose", MixinType.INSERT, `var e, t, n;`,
+        pml.registerClassMixin("x_.prototype", "dispose", MixinType.INSERT, `var e, t, n;`,
             `console.log("Unloading editor");
             ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
         )
-        pml.registerClassMixin("xz.prototype", "createCar", MixinType.INSERT, `var s, o;`,
+        pml.registerClassMixin("vz.prototype", "createCar", MixinType.INSERT, `var s, o;`,
             `r ? void 0 : console.log("now driving");console.log(i);`
         )
-        pml.registerClassMixin("EC.prototype", "dispose", MixinType.INSERT, `window.removeEventListener("keydown", kC(this, yC, "f")),`,
+        pml.registerClassMixin("yP.prototype", "dispose", MixinType.INSERT, `window.removeEventListener('keyup', wP(this, mP, 'f'));`,
             `console.log("no longer driving"),ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
         )
-        pml.registerClassMixin("eU.prototype", "getCategoryMesh", MixinType.REPLACEBETWEEN, `const r = n.colors.get(i);`, `const r = n.colors.get(i);`, 
+        pml.registerClassMixin("YB.prototype", "getCategoryMesh", MixinType.REPLACEBETWEEN, `const r = n.colors.get(i);`, `const r = n.colors.get(i);`, 
             `for(let model of ActivePolyModLoader.getMod("${this.modID}").models) {
                 for(let category in model.categories) {
-                    if(e === RA[category]) {
-                        console.log(e);console.log(Sb[model.categories[category].icon])
-                        n = this.getPart(Sb[model.categories[category].icon]) || null;
+                    if(e === LA[category]) {
+                        console.log(e);console.log(Mb[model.categories[category].icon])
+                        n = this.getPart(Mb[model.categories[category].icon]) || null;
+                        console.log(n);console.log(i);
+                        console.log(n.colors);
                     }
                 }
             }
             const r = n.colors.get(i);`
         )
+        pml.registerFuncMixin(`bS`, MixinType.INSERT, `setTimeout(() => {`, `console.log(e);`);
     }
     hotLoadMain = () => {
         for(let model of this.models) {
             this.modelUrls.push(`${model.url}.glb`);
             for(let category in model.categories) {
-                this.pml.editorExtras.registerCategory(category, model.categories[category].icon);
+                this.pApi.editorExtras.registerCategory(category, model.categories[category].icon);
             }
             for(let block in model.blocks) {
                 this.blockTextIds.push(block);
-                this.pml.editorExtras.registerBlock(block, model.blocks[block].categoryId, model.blocks[block].checksum, model.blocks[block].sceneName, model.blocks[block].modelName, model.blocks[block].editorOverlap, model.blocks[block].extraSettings);
-                let blockId = this.pml.editorExtras.blockNumberFromId(block);
+                this.pApi.editorExtras.registerBlock(block, model.blocks[block].categoryId, model.blocks[block].checksum, model.blocks[block].sceneName, model.blocks[block].modelName, model.blocks[block].editorOverlap, model.blocks[block].extraSettings);
+                let blockId = this.pApi.editorExtras.blockNumberFromId(block);
                 this.blockIds.push(blockId);
                 model.blockIds.push(blockId);
             }
         }
     }
     hotLoadSimWorker = (usedModels) => {
-        this.pml.getFromPolyTrack("VA").map((e) => { for(let model of usedModels) { if(model.blockIds.indexOf(e.id) !== -1) this.simLoadedModels.push(model) && this.o(e).then(() => {
-            let mz = this.pml.getFromPolyTrack("mz");
+        console.log(this.pml.getFromPolyTrack("GA"));
+        this.pml.getFromPolyTrack("GA").map((e) => { for(let model of usedModels) { if(model.blockIds.indexOf(e.id) !== -1) this.simLoadedModels.push(model) && this.o(e).then(() => {
+            let mz = this.pml.getFromPolyTrack("hz");
             this.get(this.simworkers[0], mz, "f").postMessage({
                 messageType: 421,
-                toExec: [...this.pml.editorExtras.getSimBlocks, "t.dispose()"]
+                toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()"]
             });
             this.get(this.simworkers[1], mz, "f").postMessage({
                 messageType: 421,
-                toExec: [...this.pml.editorExtras.getSimBlocks, "t.dispose()"]
+                toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()"]
             });
             this.get(this.simworkers[0], mz, "f").postMessage({
                 messageType: this.pml.getFromPolyTrack("uz").Init,
@@ -690,27 +701,27 @@ class PolyBlockLoader extends PolyMod {
                 trackParts: this.loaderClass.getPhysicsParts(),
             });
         })}});
-        console.log(this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f"));
+        console.log(this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f"));
     }
     hotUnloadMain = () => {
         this.pml.getFromPolyTrack(`
-            for(let blk in Sb) {
+            for(let blk in Mb) {
                 if(ActivePolyModLoader.getMod("${this.modID}").blockIds.indexOf(Number.parseInt(blk)) !== -1 || ActivePolyModLoader.getMod("${this.modID}").blockTextIds.indexOf(blk) !== -1) {
-                    delete Sb[blk];
+                    delete Mb[blk];
                 }
             }
-            for(let cfg of VA) {
+            for(let cfg of GA) {
                 if(ActivePolyModLoader.getMod("${this.modID}").blockIds.indexOf(cfg.id) !== -1) {
-                    VA.splice(VA.indexOf(cfg), 1);
+                    _box.splice(_box.indexOf(cfg), 1);
                 }
             };`);
-        this.pml.getFromPolyTrack(`GA.clear();for (const e of VA) {if (!GA.has(e.id)){ GA.set(e.id, e);}; }`);
+        this.pml.getFromPolyTrack(`_box.clear();for (const e of GA) {if (!_box.has(e.id)){ _box.set(e.id, e);}; }`);
     }
     hotUnloadSimWorker = () => {
-        this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").forEach(blk => {
+        this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").forEach(blk => {
             if(this.blockIds.indexOf(blk.configuration.id) !== -1) {
                 console.log("got em")
-                this.get(this.loaderClass, this.pml.getFromPolyTrack("qB"), "f").delete(blk.configuration.id);
+                this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").delete(blk.configuration.id);
             }
         })
         let loadedSimIds = [], loadedSimTextIds = [], loadedSimCategories = [];
@@ -721,7 +732,7 @@ class PolyBlockLoader extends PolyMod {
                 loadedSimCategories.push(category);
             }
         }
-        let mz = this.pml.getFromPolyTrack("mz");
+        let mz = this.pml.getFromPolyTrack("hz");
         this.get(this.simworkers[0], mz, "f").postMessage({
             messageType: 422,
             blockIds: loadedSimIds,
