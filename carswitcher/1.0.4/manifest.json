@@ -1,0 +1,12 @@
+{
+    "polymod": {
+        "name": "Car Switcher",
+        "id": "carswitcher",
+        "author": "Orangy",
+        "targets": ["0.5.2"],
+        "main": "main.mod.js"
+    },
+    "dependencies": [
+        "pmlapi"
+    ]
+}
