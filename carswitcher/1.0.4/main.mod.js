@@ -1,5 +1,18 @@
 import { PolyMod, MixinType } from "https://pml.crjakob.com/PolyTrackMods/PolyModLoader/0.5.2/PolyModLoader.js";
 
+let Variables = {
+    Car: "Nv",
+    SomeFunction: "vl",
+    Getter: "ml",
+    ShapeVerticeThing: "Fw",
+    WheelGeometryThing: "Ww",
+    TemplateCar: "Qw",
+    MeshLoader: "Al",
+    AsyncFunction: "Hw",
+    ResourceClass: "jw",
+    UIFunction: "mN"
+}
+
 class OrangysCarSwitcherMod extends PolyMod {
     init = (pml) => {
         const pApi = pml.getMod("pmlapi");
@@ -60,7 +73,7 @@ class OrangysCarSwitcherMod extends PolyMod {
              * template model is stored in Pg.models or modAPI.templateCar.models
              */
             reloadAllCarModels:()=>{
-                let Pg = pml.getFromPolyTrack("dv")
+                let Pg = pml.getFromPolyTrack(`${Variables.Car}`)
                 for(let x of this.carList){
                     let carColor = x.getColors()
                     for(let i of x.modelData.children){
@@ -129,13 +142,13 @@ class OrangysCarSwitcherMod extends PolyMod {
                                         e
                                 );
                             }
-                            let pl = pml.getFromPolyTrack('vl');
+                            let pl = pml.getFromPolyTrack(`${Variables.SomeFunction}`);
                             const i = pl(
                                 n.children.map((e) => e.geometry),
                                 !0,
                             );
                             n.updateMatrixWorld(!0), i.applyMatrix4(n.matrix.clone());
-                            let Br = pml.getFromPolyTrack("yr");
+                            let Br = pml.getFromPolyTrack("Mesh");
                             const r = n.children.map((e) => e.material),
                                 a = new Br(i, r);
                             return (a.name = e), a;
@@ -159,7 +172,7 @@ class OrangysCarSwitcherMod extends PolyMod {
                             wheelFR: i(n("WheelFR")),
                             wheelBL: i(n("WheelBL")),
                             wheelBR: i(n("WheelBR")),
-                            collisionShapeVertices: pml.getFromPolyTrack(`Vw(Dv, Dv, "m", Ow)`).call(pml.getFromPolyTrack("Dv"), n("Collision")),
+                            collisionShapeVertices: pml.getFromPolyTrack(`${Variables.Getter}(${Variables.Car}, ${Variables.Car}, "m", ${Variables.ShapeVerticeThing})`).call(pml.getFromPolyTrack(`${Variables.Car}`), n("Collision")),
                         }
         
                         resVal.wheelFL.geometry.translate(-.627909, .218824, -1.3478),
@@ -180,15 +193,15 @@ class OrangysCarSwitcherMod extends PolyMod {
              */
             setNewCarTemplateModel:async (carPath)=>{
                 var newCar = typeof carPath == "string"? await this.carApi.getComputedCarModel(carPath): carPath //so you can submit a computed model
-                pml.getFromPolyTrack('jw').models = await newCar
+                pml.getFromPolyTrack(`${Variables.TemplateCar}`).models = await newCar
                 return await newCar
             },
             carList: this.carList,
-            templateCar: pml.getFromPolyTrack('jw')
+            templateCar: pml.getFromPolyTrack(`${Variables.TemplateCar}`)
 
 
         }
-        pml.registerClassMixin("Gw", "initResources", MixinType.OVERRIDE, ["Al", "jw", "Ww", `Vw(Dv, Dv, "m", Ow)`, `Vw(Dv, Dv, "m", Fw)`, "vl", "yr"], (vl, dv, gw, dvdvfw, dvdvmw, pl, wr) => {
+        pml.registerClassMixin(`${Variables.ResourceClass}`, "initResources", MixinType.OVERRIDE, [`${Variables.MeshLoader}`, `${Variables.TemplateCar}`, `${Variables.AsyncFunction}`, `${Variables.Getter}(${Variables.Car}, ${Variables.Car}, "m", ${Variables.ShapeVerticeThing})`, `${Variables.Getter}(${Variables.Car}, ${Variables.Car}, "m", ${Variables.WheelGeometryThing})`, `${Variables.SomeFunction}`, "Mesh"], (vl, dv, gw, dvdvfw, dvdvmw, pl, wr) => {
             return gw(this, void 0, void 0, (function*() {
                 const e = yield new Promise(( (e, t) => {
                     this.fdThing = (new vl)
@@ -268,7 +281,7 @@ class OrangysCarSwitcherMod extends PolyMod {
             }
             ))
         })
-        pml.registerFuncMixin("bN", MixinType.INSERT, "u()", () => {
+        pml.registerFuncMixin(`${Variables.UIFunction}`, MixinType.INSERT, "u()", () => {
             ;setTimeout(() => {
                 let carMod = ActivePolyModLoader.getMod("carswitcher");
                 const modButtonCarChooser = document.createElement("button");
