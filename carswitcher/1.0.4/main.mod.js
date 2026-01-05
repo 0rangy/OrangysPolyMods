@@ -309,7 +309,7 @@ class OrangysCarSwitcherMod extends PolyMod {
             }, 300)
         })
         if(pml.localStorage.getItem("carSound")){
-            pApi.soundManager.registerSoundOverride("engine",pml.localStorage.getItem("carSound"));
+            pApi.registerSoundOverride("engine",pml.localStorage.getItem("carSound"));
         }
     }
 }
