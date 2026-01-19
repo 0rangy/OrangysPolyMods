@@ -572,10 +572,11 @@ class PolyBlockLoader extends PolyMod {
         );
     }
     preInit = (pml) => {
-        // pml.registerGlobalMixin(MixinType.INSERT, `author: this.trackAuthor`, `,
-        //     offset: ActivePolyModLoader.getMod("${this.modID}").offset | 0,
-        //     urls: ActivePolyModLoader.getMod("${this.modID}").loadedInEditor`);
-        pml.registerGlobalMixin(MixinType.INSERT, `constructor(e, t, n, i, r, a, s, o, l, c, h, d, u) {`, `console.log(t);`);
+        // TODO: TRACK ENCODING LOGIC
+        pml.registerGlobalMixin(MixinType.INSERT, `author: this.trackAuthor`, `,
+            offset: ActivePolyModLoader.getMod("${this.modID}").offset | 0,
+            urls: ActivePolyModLoader.getMod("${this.modID}").loadedInEditor`);
+        pml.registerGlobalMixin(MixinType.INSERT, `pI.add(this), fI.set(this, void 0), mI.set(this, void 0),`, `console.log("Driving?"),console.log(p),`);
     }
     init = (pml) => {
         this.pml = pml;
@@ -600,7 +601,7 @@ class PolyBlockLoader extends PolyMod {
                 for(let toExec of e.data.toExec) {eval(toExec);};
                 break;
             case 422:
-                t.dispose();
+                t.dispose();t = new G_(e.data.trackParts);
                 for(let blk in dd) {
                     if(e.data.blockIds.indexOf(Number.parseInt(blk)) !== -1 || e.data.blockTextIds.indexOf(blk) !== -1) {
                         delete dd[blk];
@@ -649,11 +650,15 @@ class PolyBlockLoader extends PolyMod {
             `console.log("Unloading editor");
             ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
         )
-        pml.registerClassMixin("vz.prototype", "createCar", MixinType.INSERT, `var s, o;`,
-            `r ? void 0 : console.log("now driving");console.log(i);`
-        )
-        pml.registerClassMixin("yP.prototype", "dispose", MixinType.INSERT, `window.removeEventListener('keyup', wP(this, mP, 'f'));`,
-            `console.log("no longer driving"),ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();`
+        pml.registerClassMixin("yR.prototype", "dispose", MixinType.REPLACEBETWEEN, `var t, n, i, r, a, s;`, `|| void 0 === s || s.dispose();`,
+           `console.log("no longer driving"),ActivePolyModLoader.getMod("${this.modID}").hotUnloadSimWorker();
+            var t, n, i, r, a, s;
+            null === (t = wR(this, XI, 'f')) || void 0 === t || t.dispose(), vR(this, XI, null, 'f'), wR(this, EI, 'f').setCursorHiddenWhenInactive(!1), wR(this, SI, 'f').hide(), wR(this, pI, 'm', oR).call(this, !1), wR(this, VI, 'f').dispose(), wR(this, MI, 'f').removeChangeListener(wR(this, GI, 'f')), null === (n = wR(this, WI, 'f')) || void 0 === n || n.dispose(), vR(this, WI, null, 'f'), e && wR(this, gI, 'f').clear(), wR(this, vI, 'f').clearMountains(), wR(this, QI, 'f').dispose(), null === (i = wR(this, qI, 'f')) || void 0 === i || i.dispose();
+            for (const e of wR(this, YI, 'f'))
+                null === (r = e.car) || void 0 === r || r.dispose(), e.car = null, null != e.carId && (wR(this, mI, 'f').deleteCar(e.carId), e.carId = null), e.replay = null;
+            for (const e of wR(this, ZI, 'f'))
+                e.dispose();
+            wR(this, ZI, 'f').length = 0, window.removeEventListener('keydown', wR(this, eR, 'f')), window.removeEventListener('keyup', wR(this, tR, 'f')), wR(this, nR, 'f').dispose(), null === (a = wR(this, iR, 'f')) || void 0 === a || a.dispose(), null === (s = wR(this, rR, 'f')) || void 0 === s || s.dispose();`
         )
         pml.registerClassMixin("YB.prototype", "getCategoryMesh", MixinType.REPLACEBETWEEN, `const r = n.colors.get(i);`, `const r = n.colors.get(i);`, 
             `for(let model of ActivePolyModLoader.getMod("${this.modID}").models) {
@@ -668,12 +673,12 @@ class PolyBlockLoader extends PolyMod {
             }
             const r = n.colors.get(i);`
         )
-        pml.registerFuncMixin(`bS`, MixinType.INSERT, `setTimeout(() => {`, `console.log(e);`);
 
         
         pml.registerClassMixin("hx.prototype", "toExportString", MixinType.REPLACEBETWEEN, `const t = new TextEncoder().encode(e.name);`, `return l.push(o, !0), 'PolyTrack1' + AA(l.result);`, `
             const t = new TextEncoder().encode(e.name);
             let n, i;
+            console.log(e);
             null != e.author
                 ? (i = new TextEncoder().encode(e.author), n = i.length)
                 : (i = null, n = 0);
@@ -820,30 +825,22 @@ class PolyBlockLoader extends PolyMod {
             }
         }
         let mz = this.pml.getFromPolyTrack("hz");
-        this.get(this.simworkers[0], mz, "f").postMessage({
-            messageType: 422,
-            blockIds: loadedSimIds,
-            blockTextIds: loadedSimTextIds,
-            categories: loadedSimCategories
-        });
-        this.get(this.simworkers[1], mz, "f").postMessage({
-            messageType: 422,
-            blockIds: loadedSimIds,
-            blockTextIds: loadedSimTextIds,
-            categories: loadedSimCategories
-        });
         let physicsParts = this.loaderClass.getPhysicsParts();
-        console.log(physicsParts);
         this.get(this.simworkers[0], mz, "f").postMessage({
-                messageType: this.pml.getFromPolyTrack("uz").Init,
-                isRealtime: 1,
-                trackParts: physicsParts,
-            });
+            messageType: 422,
+            blockIds: loadedSimIds,
+            blockTextIds: loadedSimTextIds,
+            categories: loadedSimCategories,
+            trackParts: physicsParts
+        });
         this.get(this.simworkers[1], mz, "f").postMessage({
-                messageType: this.pml.getFromPolyTrack("uz").Init,
-                isRealtime: 0,
-                trackParts: physicsParts,
-            });
+            messageType: 422,
+            blockIds: loadedSimIds,
+            blockTextIds: loadedSimTextIds,
+            categories: loadedSimCategories,
+            trackParts: physicsParts
+        });
+        console.log(physicsParts);
         this.blockIds = [];
         this.blockTextIds = [];
     }
