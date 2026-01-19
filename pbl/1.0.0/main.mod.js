@@ -390,6 +390,7 @@ class PolyBlockLoader extends PolyMod {
             this.pApi.soundManager.playUIClick();
             if(!selectedModel) return;
             this.loadedInEditor.indexOf(selectedModel.id) === -1 ? this.loadedInEditor.push(selectedModel.id) : this.loadedInEditor.splice(this.loadedInEditor.indexOf(selectedModel.id), 1);
+            console.log(this.loadedInEditor);
             modelsDiv.remove();
             this.showBlockList();
         });
@@ -570,6 +571,12 @@ class PolyBlockLoader extends PolyMod {
             })
         );
     }
+    preInit = (pml) => {
+        // pml.registerGlobalMixin(MixinType.INSERT, `author: this.trackAuthor`, `,
+        //     offset: ActivePolyModLoader.getMod("${this.modID}").offset | 0,
+        //     urls: ActivePolyModLoader.getMod("${this.modID}").loadedInEditor`);
+        pml.registerGlobalMixin(MixinType.INSERT, `constructor(e, t, n, i, r, a, s, o, l, c, h, d, u) {`, `console.log(t);`);
+    }
     init = (pml) => {
         this.pml = pml;
         this.pApi = pml.getMod("pmlapi");
@@ -662,6 +669,86 @@ class PolyBlockLoader extends PolyMod {
             const r = n.colors.get(i);`
         )
         pml.registerFuncMixin(`bS`, MixinType.INSERT, `setTimeout(() => {`, `console.log(e);`);
+
+        
+        pml.registerClassMixin("hx.prototype", "toExportString", MixinType.REPLACEBETWEEN, `const t = new TextEncoder().encode(e.name);`, `return l.push(o, !0), 'PolyTrack1' + AA(l.result);`, `
+            const t = new TextEncoder().encode(e.name);
+            let n, i;
+            null != e.author
+                ? (i = new TextEncoder().encode(e.author), n = i.length)
+                : (i = null, n = 0);
+
+            const u = e.urls || [];
+            let r;
+
+            // ─────────────────────────────────────────────
+            // DEFAULT PATH (no urls → identical to vanilla)
+            // ─────────────────────────────────────────────
+            if (u.length === 0) {
+                r = new Uint8Array(1 + t.length + 1 + n);
+                r[0] = t.length;
+                r.set(t, 1);
+                r[1 + t.length] = n;
+                null != i && r.set(i, 1 + t.length + 1);
+            }
+            // ─────────────────────────────────────────────
+            // EXTENDED PATH (urls present)
+            // ─────────────────────────────────────────────
+            else {
+                const d = e.offset | 0;
+                const h = u.map(v => new TextEncoder().encode(v));
+
+                let c = 1 + 4 + 1; // flags + int32 offset + url count
+                for (const v of h) c += 1 + v.length;
+
+                r = new Uint8Array(1 + t.length + 1 + n + c);
+                let f = 0;
+
+                // name
+                r[f++] = t.length;
+                r.set(t, f);
+                f += t.length;
+
+                // author
+                r[f++] = n;
+                null != i && (r.set(i, f), f += n);
+
+                // flags (1 = has custom blocks)
+                r[f++] = 1;
+
+                // offset
+                new DataView(r.buffer).setInt32(f, d, !0);
+                f += 4;
+
+                // urls
+                r[f++] = h.length;
+                for (const v of h) {
+                    r[f++] = v.length;
+                    r.set(v, f);
+                    f += v.length;
+                }
+            }
+
+            // original logic untouched
+            const a = cx(this, ix, 'm', ox).call(this),
+                s = new TYPED_ARRAYS.Deflate({
+                    level: 9,
+                    windowBits: 9,
+                    memLevel: 9
+                });
+
+            s.push(r, !1);
+            s.push(a, !0);
+
+            const o = AA(s.result),
+                l = new TYPED_ARRAYS.Deflate({
+                    level: 9,
+                    windowBits: 15,
+                    memLevel: 9
+                });
+
+            return l.push(o, !0), 'PolyTrack1' + AA(l.result);
+`)
     }
     hotLoadMain = () => {
         for(let model of this.models) {
@@ -746,6 +833,7 @@ class PolyBlockLoader extends PolyMod {
             categories: loadedSimCategories
         });
         let physicsParts = this.loaderClass.getPhysicsParts();
+        console.log(physicsParts);
         this.get(this.simworkers[0], mz, "f").postMessage({
                 messageType: this.pml.getFromPolyTrack("uz").Init,
                 isRealtime: 1,
