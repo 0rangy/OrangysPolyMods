@@ -42,6 +42,7 @@ class PolyBlockLoader extends PolyMod {
                 });
             })
         ).then(() => {
+            console.log("Loaded models")
             this.hotLoadMain();
         });
     }
@@ -903,7 +904,7 @@ class PolyBlockLoader extends PolyMod {
                         }
 
                         // extension validated
-                        p = q;
+                        p = v;
                         m = off;
                         g = urls;
                     }
@@ -960,7 +961,7 @@ class PolyBlockLoader extends PolyMod {
                     trackData: u
                 };
             }`)
-            pml.registerFuncMixin("ex", MixinType.INSERT, `let n = e;`, `console.log(t);`)
+            // pml.registerFuncMixin("ex", MixinType.INSERT, `let n = e;`, `console.log(t);`)
     }
     hotLoadMain = () => {
         this.hotUnloadMain();
