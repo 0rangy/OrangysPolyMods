@@ -12,6 +12,39 @@ class PolyBlockLoader extends PolyMod {
             );
         return "m" === n ? i : "a" === n ? i.call(e) : i ? i.value : t.get(e);
     };
+    addUrlsToList = (modelUrls) => {
+        return Promise.all(
+            modelUrls.map((modelUrl) => {
+                return new Promise((resolve) => {
+                    fetch(`${modelUrl}.json`).then(responce => responce.json()).then(json => {
+                        let blocks = {};
+                        let blockTextIds = [];
+                        for(let block in json["blocks"]) {
+                            blockTextIds.push(block)
+                            blocks[block] = {
+                                categoryId: json["blocks"][block].categoryId,
+                                checksum: json["blocks"][block].checksum,
+                                sceneName: json["blocks"][block].sceneName,
+                                modelName: json["blocks"][block].modelName,
+                                editorOverlap: json["blocks"][block].editorOverlap,
+                                extraSettings: json["blocks"][block].extraSettings || {}
+                            }
+                        }
+                        this.models.push({
+                            url: modelUrl,
+                            blockIds: [],
+                            blockTextIds,
+                            blocks,
+                            categories: json["categories"] || []
+                        })
+                        resolve();
+                    });
+                });
+            })
+        ).then(() => {
+            this.hotLoadMain();
+        });
+    }
     promptUserForNewModel = () => {
         let menuDiv = document.getElementById("ui").children[0];
 
@@ -410,12 +443,12 @@ class PolyBlockLoader extends PolyMod {
                     break;
                 }
             }
-            this.hotUnloadMain();
             this.hotUnloadSimWorker();
             this.hotLoadMain();
             this.showBlockList();
         });
         removeButton.disabled = true;
+        loadButton.disabled = true;
     buttonWrapper.appendChild(removeButton);
 
         menuDiv.appendChild(modelsDiv);
@@ -431,7 +464,6 @@ class PolyBlockLoader extends PolyMod {
             yl = pml.getFromPolyTrack("yl"),
             MeshLambertMaterial = pml.getFromPolyTrack("Ws");
             console.log(e);
-        if (this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").has(e.id)) throw new Error("Track part types have same Id");
         const o = {
             configuration: e,
             colors: new Map(e.colors.map(({ id: e }) => [e, null])),
@@ -576,10 +608,26 @@ class PolyBlockLoader extends PolyMod {
         pml.registerGlobalMixin(MixinType.INSERT, `author: this.trackAuthor`, `,
             offset: ActivePolyModLoader.getMod("${this.modID}").offset | 0,
             urls: ActivePolyModLoader.getMod("${this.modID}").loadedInEditor`);
-        pml.registerGlobalMixin(MixinType.INSERT, `pI.add(this), fI.set(this, void 0), mI.set(this, void 0),`, `console.log("Driving?"),console.log(p),`);
+        pml.registerGlobalMixin(MixinType.REPLACEBETWEEN, `const r = L = new yR(u, p, A, b, y, m, c, s, g, o, a, E, S, e, t, 'custom', [], null, null, () => Promise.resolve(null), () => {
+                                    GP(), r.dispose(!1), L = n, i();
+                                }, null);`, `const r = L = new yR(u, p, A, b, y, m, c, s, g, o, a, E, S, e, t, 'custom', [], null, null, () => Promise.resolve(null), () => {
+                                    GP(), r.dispose(!1), L = n, i();
+                                }, null);`, `
+                                console.log("Driving?");console.log(e);
+                                e.urls && polyModLoader.getMod("${this.modID}").hotLoadSimWorkerFromUrls(e.urls).then(() => {
+                                    const r = L = new yR(u, p, A, b, y, m, c, s, g, o, a, E, S, e, t, 'custom', [], null, null, () => Promise.resolve(null), () => {
+                                        GP(), r.dispose(!1), L = n, i();
+                                    }, null);
+                                });
+                                `)
+        pml.registerGlobalMixin(MixinType.INSERT, `author: I_(this, C_, 'f').trackAuthor`, `,
+            offset: ActivePolyModLoader.getMod("${this.modID}").offset | 0,
+            urls: ActivePolyModLoader.getMod("${this.modID}").loadedInEditor`);
+        
     }
     init = (pml) => {
         this.pml = pml;
+        this.initVer = 1;
         this.pApi = pml.getMod("pmlapi");
         this.gltfLoader = null;
         this.loaderClass = null;
@@ -601,7 +649,6 @@ class PolyBlockLoader extends PolyMod {
                 for(let toExec of e.data.toExec) {eval(toExec);};
                 break;
             case 422:
-                t.dispose();t = new G_(e.data.trackParts);
                 for(let blk in dd) {
                     if(e.data.blockIds.indexOf(Number.parseInt(blk)) !== -1 || e.data.blockTextIds.indexOf(blk) !== -1) {
                         delete dd[blk];
@@ -613,6 +660,7 @@ class PolyBlockLoader extends PolyMod {
                     }
                 }
                 _box.clear();for (const e of bv) {if (!_box.has(e.id)){ _box.set(e.id, e);}; }
+                postMessage({messageType: 423});
                 break;`);
         pml.registerFuncMixin("mN", MixinType.INSERT, `const _ = document.createElement('p');`, `
             const blockButton = document.createElement("button");
@@ -639,8 +687,7 @@ class PolyBlockLoader extends PolyMod {
                     simWorkerLoad.push(model);
                 }
             });
-            ActivePolyModLoader.getMod("${this.modID}").hotLoadSimWorker(simWorkerLoad);
-            setTimeout(() => {b_(this, US, !0, 'f'), A_(this, dM, 'f').enabled = !0, 1 == A_(this, KM, 'f').length && A_(this, AS, 'm', a_).call(this), null === (e = A_(this, QM, 'f')) || void 0 === e || e.dispose(), b_(this, QM, new Ox(A_(this, SS, 'f')), 'f'), A_(this, QM, 'f').refresh(A_(this, _S, 'f')), A_(this, XS, 'f').show(), A_(this, zS, 'f').className = 'editor';}, 1000);`
+            ActivePolyModLoader.getMod("${this.modID}").hotLoadSimWorker(simWorkerLoad).then(() => {b_(this, US, !0, 'f'), A_(this, dM, 'f').enabled = !0, 1 == A_(this, KM, 'f').length && A_(this, AS, 'm', a_).call(this), null === (e = A_(this, QM, 'f')) || void 0 === e || e.dispose(), b_(this, QM, new Ox(A_(this, SS, 'f')), 'f'), A_(this, QM, 'f').refresh(A_(this, _S, 'f')), A_(this, XS, 'f').show(), A_(this, zS, 'f').className = 'editor';});`
         )
         pml.registerClassMixin("x_.prototype", "disable", MixinType.INSERT, `var e, t, n;`,
             `console.log("Unloading editor");
@@ -752,10 +799,171 @@ class PolyBlockLoader extends PolyMod {
                     memLevel: 9
                 });
 
-            return l.push(o, !0), 'PolyTrack1' + AA(l.result);
-`)
+            return l.push(o, !0), 'PolyTrack1' + AA(l.result);`)
+        
+        pml.registerSimWorkerFuncMixin("ammoFunc", MixinType.INSERT, `let t = new G_([]);`, `let curVer=0;`);
+        pml.registerSimWorkerFuncMixin("ammoFunc", MixinType.REPLACEBETWEEN, `t = new G_(e.data.trackParts), function (e) {`, `}(n);`,`
+                
+                t.dispose(), t = new G_(e.data.trackParts), function (e, ver) {
+                    if (e)
+                        if (self.requestAnimationFrame) {
+                            function t() {
+                                if(ver && ver !== curVer) {console.log("new init is in, stopping loop"); return;};
+                                l(), self.requestAnimationFrame(t);
+                            }
+                            t();
+                        } else
+                            setInterval(l, 1000 / 60);
+                    else
+                        setInterval(c);
+                }(n, e.data.version);`)
+        pml.registerClassMixin("hx", "fromExportString", MixinType.REPLACEBETWEEN, `const t = 'PolyTrack1';`, `trackData: u
+                        };`, 
+            `const t = 'PolyTrack1';
+            if (!e.startsWith(t))
+                return null;
+
+            const n = xA(e.substring(10));
+            if (null == n)
+                return null;
+
+            const i = new TYPED_ARRAYS.Inflate({ to: 'string' });
+            if (i.push(n, !0), i.err)
+                return null;
+
+            const r = i.result;
+            if ('string' != typeof r)
+                return null;
+
+            const a = xA(r);
+            if (null == a)
+                return null;
+
+            const s = new TYPED_ARRAYS.Inflate();
+            if (s.push(a, !0), s.err)
+                return null;
+
+            const o = s.result;
+            if (!(o instanceof Uint8Array))
+                return null;
+
+            // ─────────────────────────────────────────────
+            // vanilla metadata
+            // ─────────────────────────────────────────────
+            const l = o[0];
+            if (o.length < 1 + l)
+                return null;
+
+            const c = new TextDecoder('utf-8').decode(o.subarray(1, 1 + l)),
+                h = o[1 + l];
+
+            if (o.length < 1 + l + 1 + h)
+                return null;
+
+            let d = h > 0
+                ? new TextDecoder('utf-8').decode(o.subarray(1 + l + 1, 1 + l + 1 + h))
+                : null;
+
+            // vanilla start of track data
+            const v = 1 + l + 1 + h;
+            let p = v;
+
+            // ─────────────────────────────────────────────
+            // speculative extension parse (SAFE)
+            // ─────────────────────────────────────────────
+            let m = null, g = null;
+
+            try {
+                if (p + 1 + 4 + 1 <= o.length) {
+                    const y = o[p];
+
+                    if (y & 1) {
+                        let q = p + 1;
+
+                        // offset
+                        if (q + 4 > o.length) throw 0;
+                        const off = new DataView(o.buffer).getInt32(q, !0);
+                        q += 4;
+
+                        // url count
+                        if (q + 1 > o.length) throw 0;
+                        const b = o[q++];
+                        if (b > 16) throw 0; // sanity cap
+
+                        const urls = [];
+                        for (let k = 0; k < b; k++) {
+                            if (q + 1 > o.length) throw 0;
+                            const w = o[q++];
+                            if (q + w > o.length) throw 0;
+
+                            urls.push(
+                                new TextDecoder('utf-8').decode(o.subarray(q, q + w))
+                            );
+                            q += w;
+                        }
+
+                        // extension validated
+                        p = q;
+                        m = off;
+                        g = urls;
+                    }
+                }
+            } catch (_) {
+                // rollback to vanilla
+                p = v;
+                m = null;
+                g = null;
+            }
+
+            // ─────────────────────────────────────────────
+            // track data (unchanged)
+            // ─────────────────────────────────────────────
+            if(g) {
+                console.log(g);
+                polyModLoader.getMod("${this.modID}").addUrlsToList(g).then(() => {
+                    const u = ex(p, o);
+                    if (null == u)
+                        return null;
+                    console.log({
+                            name: c,
+                            author: d,
+                            offset: m,          // null if not present
+                            urls: g             // null if not present
+                        });
+                    return {
+                        trackMetadata: {
+                            name: c,
+                            author: d,
+                            offset: m,          // null if not present
+                            urls: g             // null if not present
+                        },
+                        trackData: u
+                    };
+                });
+            } else {
+                const u = ex(p, o);
+                if (null == u)
+                    return null;
+                console.log({
+                        name: c,
+                        author: d,
+                        offset: m,          // null if not present
+                        urls: g             // null if not present
+                    });
+                return {
+                    trackMetadata: {
+                        name: c,
+                        author: d,
+                        offset: m,          // null if not present
+                        urls: g             // null if not present
+                    },
+                    trackData: u
+                };
+            }`)
+            pml.registerFuncMixin("ex", MixinType.INSERT, `let n = e;`, `console.log(t);`)
     }
     hotLoadMain = () => {
+        this.hotUnloadMain();
         for(let model of this.models) {
             this.modelUrls.push(`${model.url}.glb`);
             for(let category in model.categories) {
@@ -770,30 +978,80 @@ class PolyBlockLoader extends PolyMod {
             }
         }
     }
+    hotLoadSimWorkerFromUrls = (urls) => {
+        return new Promise((resolve) => {
+            let urlsToLoad = [...urls];
+            let usedModels = [];
+            for(let model of this.models) {
+                if(urls.indexOf(model.url) !== -1) {
+                    usedModels.push(model);
+                    urlsToLoad.splice(urlsToLoad.indexOf(model.url), 1);
+                }
+            }
+            if(urlsToLoad.length !== 0) {
+                for(let url of urlsToLoad) {
+                    fetch(`${modelUrl}.json`).then(responce => responce.json()).then(json => {
+                        let blocks = {};
+                        let blockTextIds = [];
+                        for(let block in json["blocks"]) {
+                            blockTextIds.push(block)
+                            blocks[block] = {
+                                categoryId: json["blocks"][block].categoryId,
+                                checksum: json["blocks"][block].checksum,
+                                sceneName: json["blocks"][block].sceneName,
+                                modelName: json["blocks"][block].modelName,
+                                editorOverlap: json["blocks"][block].editorOverlap,
+                                extraSettings: json["blocks"][block].extraSettings || {}
+                            }
+                        }
+                        this.models.push({
+                            url: modelUrl,
+                            blockIds: [],
+                            blockTextIds,
+                            blocks,
+                            categories: json["categories"] || []
+                        });
+                    });
+                }
+                this.hotLoadMain();
+            }
+            this.hotUnloadSimWorker().then(() => {
+                this.hotLoadSimWorker(usedModels).then(() => resolve());
+            });
+        });
+    }
     hotLoadSimWorker = (usedModels) => {
-        console.log(this.pml.getFromPolyTrack("GA"));
-        this.pml.getFromPolyTrack("GA").map((e) => { for(let model of usedModels) { if(model.blockIds.indexOf(e.id) !== -1) this.simLoadedModels.push(model) && this.o(e).then(() => {
-            let mz = this.pml.getFromPolyTrack("hz");
-            this.get(this.simworkers[0], mz, "f").postMessage({
-                messageType: 421,
-                toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()"]
-            });
-            this.get(this.simworkers[1], mz, "f").postMessage({
-                messageType: 421,
-                toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()"]
-            });
-            this.get(this.simworkers[0], mz, "f").postMessage({
-                messageType: this.pml.getFromPolyTrack("uz").Init,
-                isRealtime: 1,
-                trackParts: this.loaderClass.getPhysicsParts(),
-            });
-            this.get(this.simworkers[1], mz, "f").postMessage({
-                messageType: this.pml.getFromPolyTrack("uz").Init,
-                isRealtime: 0,
-                trackParts: this.loaderClass.getPhysicsParts(),
-            });
-        })}});
-        console.log(this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f"));
+        return new Promise((resolve) => {
+            if(usedModels.length === 0) { resolve(); return; }
+            this.pml.getFromPolyTrack("GA").map((e) => { for(let model of usedModels) { if(model.blockIds.indexOf(e.id) !== -1) this.simLoadedModels.push(model) && this.o(e).then(() => {
+                let mz = this.pml.getFromPolyTrack("hz");
+                this.get(this.simworkers[0], mz, "f").postMessage({
+                    messageType: 421,
+                    toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()", "t = new G_(e.data.trackParts);"],
+                    trackParts: this.loaderClass.getPhysicsParts()
+                });
+                this.get(this.simworkers[1], mz, "f").postMessage({
+                    messageType: 421,
+                    toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()", "t = new G_(e.data.trackParts);"],
+                    trackParts: this.loaderClass.getPhysicsParts()
+                });
+                // this.get(this.simworkers[0], mz, "f").postMessage({
+                //     messageType: this.pml.getFromPolyTrack("uz").Init,
+                //     isRealtime: 1,
+                //     trackParts: this.loaderClass.getPhysicsParts(),
+                //     version: this.initVer
+                // });
+                // this.get(this.simworkers[1], mz, "f").postMessage({
+                //     messageType: this.pml.getFromPolyTrack("uz").Init,
+                //     isRealtime: 0,
+                //     trackParts: this.loaderClass.getPhysicsParts(),
+                //     version: this.initVer
+                // });
+                // this.initVer++;
+                console.log("Finished loading sim");
+                resolve();
+            })}});
+        })
     }
     hotUnloadMain = () => {
         this.pml.getFromPolyTrack(`
@@ -810,39 +1068,69 @@ class PolyBlockLoader extends PolyMod {
         this.pml.getFromPolyTrack(`_box.clear();for (const e of GA) {if (!_box.has(e.id)){ _box.set(e.id, e);}; }`);
     }
     hotUnloadSimWorker = () => {
-        this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").forEach(blk => {
-            if(this.blockIds.indexOf(blk.configuration.id) !== -1) {
-                console.log("got em")
-                this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").delete(blk.configuration.id);
+        return new Promise(res => {
+            this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").forEach(blk => {
+                if(this.blockIds.indexOf(blk.configuration.id) !== -1) {
+                    console.log("got em")
+                    this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").delete(blk.configuration.id);
+                }
+            })
+            let loadedSimIds = [], loadedSimTextIds = [], loadedSimCategories = [];
+            for(let model of this.simLoadedModels) {
+                loadedSimIds = [...loadedSimIds, ...model.blockIds];
+                loadedSimTextIds = [...loadedSimTextIds, ...model.blockTextIds];
+                for(let category in model.categories) {
+                    loadedSimCategories.push(category);
+                }
             }
+            let mz = this.pml.getFromPolyTrack("hz");
+            let physicsParts = this.loaderClass.getPhysicsParts();
+            let sim1done, sim2done = false;
+            this.get(this.simworkers[0], mz, "f").postMessage({
+                messageType: 422,
+                blockIds: loadedSimIds,
+                blockTextIds: loadedSimTextIds,
+                categories: loadedSimCategories
+            });
+            let sim1func = (e) => {
+                if(e.data.messageType === 423) {
+                    if(!sim1done) {
+                        sim1done = true;
+                        if(sim2done) {
+                            console.log(physicsParts);
+                            this.blockIds = [];
+                            this.blockTextIds = [];
+                            console.log("Finished unloading sim");
+                            res();
+                            this.get(this.simworkers[0], mz, "f").removeEventListener("message", sim1func);
+                        }
+                    }
+                }
+            };
+            this.get(this.simworkers[0], mz, "f").addEventListener("message", sim1func);
+            this.get(this.simworkers[1], mz, "f").postMessage({
+                messageType: 422,
+                blockIds: loadedSimIds,
+                blockTextIds: loadedSimTextIds,
+                categories: loadedSimCategories
+            });
+            let sim2func = (e) => {
+                if(e.data.messageType === 423) {
+                    if(!sim2done) {
+                        sim2done = true;
+                        if(sim1done) {
+                            console.log(physicsParts);
+                            this.blockIds = [];
+                            this.blockTextIds = [];
+                            console.log("Finished unloading sim");
+                            res();
+                            this.get(this.simworkers[0], mz, "f").removeEventListener("message", sim2func);
+                        }
+                    }
+                }
+            };
+            this.get(this.simworkers[0], mz, "f").addEventListener("message", sim2func);
         })
-        let loadedSimIds = [], loadedSimTextIds = [], loadedSimCategories = [];
-        for(let model of this.simLoadedModels) {
-            loadedSimIds = [...loadedSimIds, ...model.blockIds];
-            loadedSimTextIds = [...loadedSimTextIds, ...model.blockTextIds];
-            for(let category in model.categories) {
-                loadedSimCategories.push(category);
-            }
-        }
-        let mz = this.pml.getFromPolyTrack("hz");
-        let physicsParts = this.loaderClass.getPhysicsParts();
-        this.get(this.simworkers[0], mz, "f").postMessage({
-            messageType: 422,
-            blockIds: loadedSimIds,
-            blockTextIds: loadedSimTextIds,
-            categories: loadedSimCategories,
-            trackParts: physicsParts
-        });
-        this.get(this.simworkers[1], mz, "f").postMessage({
-            messageType: 422,
-            blockIds: loadedSimIds,
-            blockTextIds: loadedSimTextIds,
-            categories: loadedSimCategories,
-            trackParts: physicsParts
-        });
-        console.log(physicsParts);
-        this.blockIds = [];
-        this.blockTextIds = [];
     }
 }
 
