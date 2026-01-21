@@ -4,7 +4,7 @@ class PolyProxyMod extends PolyMod {
     preInit = (pml) => {
         this.pml = pml;
         this.url = "https://polyproxy.orangy.cfd/";
-        this.alternateUrl = "https://polyproxy.orangy.cfd/";
+        this.alternateUrl = "https://polyproxy.polymodloader.com/";
         pml.registerSettingCategory("PolyProxy");
         pml.registerSetting("Use secondary proxy", "secondaryProxy", "boolean", false);
         pml.registerGlobalMixin(MixinType.REPLACEBETWEEN, ` vu = 'https://vps.kodub.com/'`, ` vu = 'https://vps.kodub.com/'`, ` vu_1 = "ehehehehehehhehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehe"`);
