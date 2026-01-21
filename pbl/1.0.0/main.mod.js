@@ -624,7 +624,6 @@ class PolyBlockLoader extends PolyMod {
         pml.registerGlobalMixin(MixinType.INSERT, `author: I_(this, C_, 'f').trackAuthor`, `,
             offset: ActivePolyModLoader.getMod("${this.modID}").offset | 0,
             urls: ActivePolyModLoader.getMod("${this.modID}").loadedInEditor`);
-        
     }
     init = (pml) => {
         this.pml = pml;
@@ -921,8 +920,8 @@ class PolyBlockLoader extends PolyMod {
             // ─────────────────────────────────────────────
             if(g) {
                 console.log(g);
-                polyModLoader.getMod("${this.modID}").addUrlsToList(g).then(() => {
-                    const u = ex(p, o);
+                polyModLoader.getMod("${this.modID}").addUrlsToList(g);
+                const u = ex(p, o);
                     if (null == u)
                         return null;
                     console.log({
@@ -940,7 +939,6 @@ class PolyBlockLoader extends PolyMod {
                         },
                         trackData: u
                     };
-                });
             } else {
                 const u = ex(p, o);
                 if (null == u)
@@ -961,7 +959,10 @@ class PolyBlockLoader extends PolyMod {
                     trackData: u
                 };
             }`)
-            // pml.registerFuncMixin("ex", MixinType.INSERT, `let n = e;`, `console.log(t);`)
+        pml.registerClassMixin("YB.prototype", "init", MixinType.REPLACEBETWEEN, `return yield qB(this, HB, 'm', QB).call(this);`, `return yield qB(this, HB, 'm', QB).call(this);`, `
+            console.log("getting");console.log(polyModLoader.getMod("${this.modID}").models.map(model => model.url));
+            return yield polyModLoader.getMod("${this.modID}").hotLoadSimWorkerFromUrls(polyModLoader.getMod("${this.modID}").models.map((model => model.url)), true).then(() => qB(this, HB, 'm', QB).call(this))
+            `)
     }
     hotLoadMain = () => {
         this.hotUnloadMain();
@@ -979,7 +980,7 @@ class PolyBlockLoader extends PolyMod {
             }
         }
     }
-    hotLoadSimWorkerFromUrls = (urls) => {
+    hotLoadSimWorkerFromUrls = (urls, holdBackModels = false) => {
         return new Promise((resolve) => {
             let urlsToLoad = [...urls];
             let usedModels = [];
@@ -990,65 +991,70 @@ class PolyBlockLoader extends PolyMod {
                 }
             }
             if(urlsToLoad.length !== 0) {
-                for(let url of urlsToLoad) {
-                    fetch(`${modelUrl}.json`).then(responce => responce.json()).then(json => {
-                        let blocks = {};
-                        let blockTextIds = [];
-                        for(let block in json["blocks"]) {
-                            blockTextIds.push(block)
+                const modelPromises = urlsToLoad.map(modelUrl =>
+                fetch(`${modelUrl}.json`)
+                    .then(response => response.json())
+                    .then(json => {
+                        const blocks = {};
+                        const blockTextIds = [];
+
+                        for (const block in json.blocks) {
+                            blockTextIds.push(block);
                             blocks[block] = {
-                                categoryId: json["blocks"][block].categoryId,
-                                checksum: json["blocks"][block].checksum,
-                                sceneName: json["blocks"][block].sceneName,
-                                modelName: json["blocks"][block].modelName,
-                                editorOverlap: json["blocks"][block].editorOverlap,
-                                extraSettings: json["blocks"][block].extraSettings || {}
-                            }
+                                categoryId: json.blocks[block].categoryId,
+                                checksum: json.blocks[block].checksum,
+                                sceneName: json.blocks[block].sceneName,
+                                modelName: json.blocks[block].modelName,
+                                editorOverlap: json.blocks[block].editorOverlap,
+                                extraSettings: json.blocks[block].extraSettings || {}
+                            };
                         }
-                        this.models.push({
+
+                        const modelData = {
                             url: modelUrl,
                             blockIds: [],
                             blockTextIds,
                             blocks,
-                            categories: json["categories"] || []
-                        });
-                    });
-                }
-                this.hotLoadMain();
+                            categories: json.categories || []
+                        };
+
+                        this.models.push(modelData);
+                        this.usedModels.push({ ...modelData });
+                    })
+                );
+
+                Promise.all(modelPromises).then(() =>this.hotUnloadSimWorker()).then(() => {
+                    console.log("Unloaded sim");
+                    console.log(usedModels);
+                    this.hotLoadSimWorker(usedModels, holdBackModels).then(() => {console.log("Loaded sim");resolve();});
+                });
+            } else {
+                console.log(usedModels);
+                this.hotUnloadSimWorker().then(() => {
+                    console.log("Unloaded sim");
+                    this.hotLoadSimWorker(usedModels, holdBackModels).then(() => {console.log("Loaded sim");resolve();});
+                });
             }
-            this.hotUnloadSimWorker().then(() => {
-                this.hotLoadSimWorker(usedModels).then(() => resolve());
-            });
         });
     }
-    hotLoadSimWorker = (usedModels) => {
+    hotLoadSimWorker = (usedModels, holdBackModels = false) => {
         return new Promise((resolve) => {
-            if(usedModels.length === 0) { resolve(); return; }
+            console.log("loading sim step 2");
+            if(usedModels.length === 0) { resolve(); console.log("Finished loading sim but no????"); return; }
             this.pml.getFromPolyTrack("GA").map((e) => { for(let model of usedModels) { if(model.blockIds.indexOf(e.id) !== -1) this.simLoadedModels.push(model) && this.o(e).then(() => {
                 let mz = this.pml.getFromPolyTrack("hz");
-                this.get(this.simworkers[0], mz, "f").postMessage({
-                    messageType: 421,
-                    toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()", "t = new G_(e.data.trackParts);"],
-                    trackParts: this.loaderClass.getPhysicsParts()
-                });
-                this.get(this.simworkers[1], mz, "f").postMessage({
-                    messageType: 421,
-                    toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()", "t = new G_(e.data.trackParts);"],
-                    trackParts: this.loaderClass.getPhysicsParts()
-                });
-                // this.get(this.simworkers[0], mz, "f").postMessage({
-                //     messageType: this.pml.getFromPolyTrack("uz").Init,
-                //     isRealtime: 1,
-                //     trackParts: this.loaderClass.getPhysicsParts(),
-                //     version: this.initVer
-                // });
-                // this.get(this.simworkers[1], mz, "f").postMessage({
-                //     messageType: this.pml.getFromPolyTrack("uz").Init,
-                //     isRealtime: 0,
-                //     trackParts: this.loaderClass.getPhysicsParts(),
-                //     version: this.initVer
-                // });
-                // this.initVer++;
+                if(!holdBackModels) {
+                    this.get(this.simworkers[0], mz, "f").postMessage({
+                        messageType: 421,
+                        toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()", "t = new G_(e.data.trackParts);"],
+                        trackParts: this.loaderClass.getPhysicsParts()
+                    });
+                    this.get(this.simworkers[1], mz, "f").postMessage({
+                        messageType: 421,
+                        toExec: [...this.pApi.editorExtras.getSimBlocks, "t.dispose()", "t = new G_(e.data.trackParts);"],
+                        trackParts: this.loaderClass.getPhysicsParts()
+                    });
+                }
                 console.log("Finished loading sim");
                 resolve();
             })}});
@@ -1070,12 +1076,18 @@ class PolyBlockLoader extends PolyMod {
     }
     hotUnloadSimWorker = () => {
         return new Promise(res => {
-            this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").forEach(blk => {
-                if(this.blockIds.indexOf(blk.configuration.id) !== -1) {
-                    console.log("got em")
-                    this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").delete(blk.configuration.id);
-                }
-            })
+            try {
+                this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").forEach(blk => {
+                    if(this.blockIds.indexOf(blk.configuration.id) !== -1) {
+                        console.log("got em")
+                        this.get(this.loaderClass, this.pml.getFromPolyTrack("VB"), "f").delete(blk.configuration.id);
+                    }
+                })
+            } catch(e) {
+                console.warn("No VB!")
+                res();
+                return;
+            }
             let loadedSimIds = [], loadedSimTextIds = [], loadedSimCategories = [];
             for(let model of this.simLoadedModels) {
                 loadedSimIds = [...loadedSimIds, ...model.blockIds];
