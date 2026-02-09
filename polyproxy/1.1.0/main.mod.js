@@ -2,7 +2,26 @@ import { PolyMod, MixinType } from "https://pml.crjakob.com/PolyTrackMods/PolyMo
 
 class PolyProxyMod extends PolyMod {
     preInit = (pml) => {
-        pml.registerGlobalMixin(MixinType.REPLACEBETWEEN, `https://vps.kodub.com/`, `https://vps.kodub.com/`, `https://polyproxy.orangy.cfd/`);
+        this.pml = pml;
+        this.url = "https://polyproxy.orangy.cfd/";
+        this.alternateUrl = "https://polyproxy.orangy.cfd/";
+        pml.registerSettingCategory("PolyProxy");
+        pml.registerSetting("Use secondary proxy", "secondaryProxy", "boolean", false);
+        pml.registerGlobalMixin(MixinType.REPLACEBETWEEN, ` vu = 'https://vps.kodub.com/'`, ` vu = 'https://vps.kodub.com/'`, ` vu_1 = "ehehehehehehhehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehehe"`);
+        pml.registerGlobalMixin(MixinType.REPLACEBETWEEN, ` vu `, ` vu `, ` ActivePolyModLoader.getMod("polyproxy").getUrl() `);
+    }
+    getUrl = () => {
+        try {
+            console.log(this.pml.getSetting("secondaryProxy"));
+            if(this.pml.getSetting("secondaryProxy") === "true") {
+                return this.alternateUrl;
+            } else {
+                return this.url;
+            }
+        } catch (e) {
+            console.log(e);
+            return this.url;
+        }
     }
 }
 
